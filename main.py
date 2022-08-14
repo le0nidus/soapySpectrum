@@ -23,6 +23,19 @@ def plotUpdate(ln, sig, frequencies, rxfreq):
     plt.gca().autoscale_view()
     plt.pause(0.01)
 
+
+def printMenu():
+    print("Choose one from the options:")
+    print("1 - Change RX frequency")
+    print("2 - Enable max hold")
+    print("3 - Disable max hold")
+    print("4 - Enable moving average")
+    print("5 - Disable moving average")
+    print("6 - Change moving average ratio")
+    print("7 - Clear plot")
+    print("8 - Print menu again")
+    print("9 - Quit")
+
 # enumerate devices
 results = SoapySDR.Device.enumerate()
 for result in results: print(result)
@@ -63,15 +76,7 @@ plt.xlabel("Frequency (MHz)")
 plt.ylabel("RSSI")
 
 # print menu
-print("Choose one from the options:")
-print("1 - Change RX frequency")
-print("2 - Enable Max Hold")
-print("3 - Disable Max Hold")
-print("4 - Enable Moving Average")
-print("5 - Disable Moving Average")
-print("6 - Change Moving Average Ratio")
-print("7 - Clear plot")
-print("8 - Quit")
+printMenu()
 
 dft = np.array(np.zeros(buff_len))
 dftMaxHold = np.array(np.zeros(buff_len))
@@ -146,6 +151,8 @@ while runBool:
         print("\nClearing plot...")
         clearPlotBool = True
     elif keyboard.is_pressed("8"):
+        printMenu()
+    elif keyboard.is_pressed("9"):
         print("\nYou chose to quit, ending loop")
         runBool = False
 
