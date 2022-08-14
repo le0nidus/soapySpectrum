@@ -4,7 +4,21 @@ import numpy as np  # use numpy for buffers
 import pyfftw
 from matplotlib import pyplot as plt
 import keyboard
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QApplication,QMainWindow
+import sys
 
+def window():
+    app = QApplication(sys.argv)
+    win = QMainWindow()
+    win.setGeometry(200, 200, 300, 300)
+    win.setWindowTitle("soapySpectrum Menu")
+
+    label = QtWidgets.QLabel(win)
+    label.setText("myLabel")
+    label.move(50, 50)
+
+    win.show()
 
 # apply initial settings to HackRF device
 def initializeHackRF(fs, f_rx, bw, gain):
@@ -36,6 +50,8 @@ def printMenu():
     print("8 - Print menu again")
     print("9 - Quit")
 
+
+# window()
 
 # enumerate devices
 results = SoapySDR.Device.enumerate()
