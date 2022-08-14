@@ -12,8 +12,16 @@ def initializeHackRF(fs, f_rx, bw, gain):
     sdr.setBandwidth(SOAPY_SDR_RX, 0, bw)
     sdr.setFrequency(SOAPY_SDR_RX, 0, f_rx)
     sdr.setGain(SOAPY_SDR_RX, 0, gain)
-    
 
+
+def plotUpdate(ln, sig, frequencies, rxfreq):
+    ln.set_ydata(np.abs(sig))
+    # ln.set_ydata(np.log10(np.abs(sig)))
+    ln.set_xdata((frequencies + rxfreq)/1e6)
+    # plt.ylim(0, 1200)
+    plt.gca().relim()
+    plt.gca().autoscale_view()
+    plt.pause(0.01)
 
 # enumerate devices
 results = SoapySDR.Device.enumerate()
@@ -33,9 +41,9 @@ print(sdr.listGains(SOAPY_SDR_RX, 0))
 bandwidth = 1.75e6
 samp_rate = 4e6
 rx_freq = 315e6
-buff_len = 1024
+buff_len = 512
 RX_gain = 30
-movingAverageRatio = 0.5
+movingAverageRatio = 0.125
 
 initializeHackRF(samp_rate, rx_freq, bandwidth,RX_gain)
 
@@ -114,13 +122,7 @@ while runBool:
         signal = dftMovingAverage
 
     # update the plot
-    line.set_ydata(np.abs(signal))
-    # line.set_ydata(np.log10(np.abs(signal)))
-    line.set_xdata((freqs + rx_freq)/1e6)
-    # plt.ylim(0, 1200)
-    plt.gca().relim()
-    plt.gca().autoscale_view()
-    plt.pause(0.01)
+    plotUpdate(line, signal, freqs, rx_freq)
 
     if keyboard.is_pressed("1"):
         rx_freq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
