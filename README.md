@@ -1,5 +1,6 @@
 # soapySpectrum
 It's a spectrum analyzer based on SoapySDR
+<<<<<<< HEAD
 
 
 TODO:
@@ -7,3 +8,5 @@ TODO:
 2. GUI
 3. Averaging (only moving average implemented)
 4. Removing center DC (caused by leak from LO)
+=======
+>>>>>>> main
