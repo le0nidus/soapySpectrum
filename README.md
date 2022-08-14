@@ -9,3 +9,5 @@ TODO:
 3. Averaging (only moving average implemented)
 4. Removing center DC (caused by leak from LO)
 
+
+# temp
