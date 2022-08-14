@@ -71,7 +71,7 @@ print(sdr.listGains(SOAPY_SDR_RX, 0))
 bandwidth = 1.75e6
 samp_rate = 4e6
 rx_freq = 315e6
-buff_len = 512
+buff_len = 256
 RX_gain = 30
 movingAverageRatio = 0.125
 
@@ -108,7 +108,9 @@ while runBool:
     dftOld = dft
     # get the samples into the buffer
     sr = sdr.readStream(rxStream, [buff], len(buff))
-    buff = buff / np.max(buff)
+
+    if np.max(buff) != 0:
+        buff = buff / np.max(buff)
     # print(sr.ret)  # num samples or error code
     # print(sr.flags)  # flags set by receive operation
     # print(sr.timeNs)  # timestamp for receive buffer
@@ -148,7 +150,6 @@ while runBool:
 
     # print out the maximum value in the spectrum analyzer
     # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
-
 
     if keyboard.is_pressed("1"):
         rx_freq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
