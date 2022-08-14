@@ -12,6 +12,7 @@ def initializeHackRF(fs, f_rx, bw, gain):
     sdr.setBandwidth(SOAPY_SDR_RX, 0, bw)
     sdr.setFrequency(SOAPY_SDR_RX, 0, f_rx)
     sdr.setGain(SOAPY_SDR_RX, 0, gain)
+    
 
 
 # enumerate devices
@@ -34,6 +35,7 @@ samp_rate = 4e6
 rx_freq = 315e6
 buff_len = 1024
 RX_gain = 30
+movingAverageRatio = 0.5
 
 initializeHackRF(samp_rate, rx_freq, bandwidth,RX_gain)
 
@@ -52,8 +54,16 @@ freqs = pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.numpy_fft.fftfreq
 plt.xlabel("Frequency (MHz)")
 plt.ylabel("RSSI")
 
-print("Choose one from the options:\n")
-print("1 - Change RX frequency\n2 - Enable Max Hold\n3 - Disable Max Hold\n4 - Clear plot\n5 - Quit\n")
+# print menu
+print("Choose one from the options:")
+print("1 - Change RX frequency")
+print("2 - Enable Max Hold")
+print("3 - Disable Max Hold")
+print("4 - Enable Moving Average")
+print("5 - Disable Moving Average")
+print("6 - Change Moving Average Ratio")
+print("7 - Clear plot")
+print("8 - Quit")
 
 dft = np.array(np.zeros(buff_len))
 dftMaxHold = np.array(np.zeros(buff_len))
@@ -61,6 +71,7 @@ dftMaxHold = np.array(np.zeros(buff_len))
 runBool = True
 maxHoldBool = False
 clearPlotBool = False
+movingAverageBool = False
 
 # receive samples
 while runBool:
@@ -78,17 +89,33 @@ while runBool:
     # dft = np.fft.fftshift(np.fft.fft(buff, buff_len))
     # 2 - faster pyfftw package fft
     dft = pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.numpy_fft.fft(buff, buff_len))
+    dftMovingAverage = dft
+    signal = dft
+
     if clearPlotBool:
         dftMaxHold = dft
+        dftMovingAverage = dft
         clearPlotBool = False
-    if maxHoldBool:
+
+    if movingAverageBool:
+        startIndexOldDFT = buff_len - int(buff_len * movingAverageRatio)
+        endIndexNewDFT = int(buff_len * movingAverageRatio)
+        dftMovingAverage[:endIndexNewDFT] = 0.5 * (dftOld[startIndexOldDFT:] + dftMovingAverage[:endIndexNewDFT])
+
+    if maxHoldBool and (not movingAverageBool):
         dftMaxHold = np.maximum(dft, dftMaxHold)
-    else:
-        dftMaxHold = dft
+        signal = dftMaxHold
+    elif (not maxHoldBool) and (not movingAverageBool):
+        signal = dft
+    if maxHoldBool and movingAverageBool:
+        dftMaxHold = np.maximum(dftMovingAverage, dftMaxHold)
+        signal = dftMaxHold
+    elif (not maxHoldBool) and movingAverageBool:
+        signal = dftMovingAverage
 
     # update the plot
-    line.set_ydata(np.abs(dftMaxHold))
-    # line.set_ydata(np.log10(np.abs(dftMaxHold)))
+    line.set_ydata(np.abs(signal))
+    # line.set_ydata(np.log10(np.abs(signal)))
     line.set_xdata((freqs + rx_freq)/1e6)
     # plt.ylim(0, 1200)
     plt.gca().relim()
@@ -106,9 +133,17 @@ while runBool:
         print("\nMax Hold disabled")
         maxHoldBool = False
     elif keyboard.is_pressed("4"):
+        print("\nMoving Average enabled")
+        movingAverageBool = True
+    elif keyboard.is_pressed("5"):
+        print("\nMoving Average disabled")
+        movingAverageBool = False
+    elif keyboard.is_pressed("6"):
+        movingAverageRatio = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
+    elif keyboard.is_pressed("7"):
         print("\nClearing plot...")
         clearPlotBool = True
-    elif keyboard.is_pressed("5"):
+    elif keyboard.is_pressed("8"):
         print("\nYou chose to quit, ending loop")
         runBool = False
 
