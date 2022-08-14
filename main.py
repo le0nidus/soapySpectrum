@@ -36,6 +36,20 @@ def printMenu():
     print("8 - Print menu again")
     print("9 - Quit")
 
+
+def findPeaks():
+    print("Choose one from the options:")
+    print("1 - Change RX frequency")
+    print("2 - Enable max hold")
+    print("3 - Disable max hold")
+    print("4 - Enable moving average")
+    print("5 - Disable moving average")
+    print("6 - Change moving average ratio")
+    print("7 - Clear plot")
+    print("8 - Print menu again")
+    print("9 - Quit")
+
+
 # enumerate devices
 results = SoapySDR.Device.enumerate()
 for result in results: print(result)
@@ -128,6 +142,10 @@ while runBool:
 
     # update the plot
     plotUpdate(line, signal, freqs, rx_freq)
+
+    # print out the maximum value in the spectrum analyzer
+    # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
+
 
     if keyboard.is_pressed("1"):
         rx_freq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)

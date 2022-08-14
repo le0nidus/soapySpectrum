@@ -137,6 +137,8 @@ while runBool:
     # update the plot
     plotUpdate(fig, line, bg, signal, freqs, rx_freq, ax)
 
+    # print out the maximum value in the spectrum analyzer
+    # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
 
     if keyboard.is_pressed("1"):
         rx_freq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
