@@ -63,6 +63,17 @@ def quitStream(sdrDevice, stream):
     sdrDevice.closeStream(stream)
 
 
+# Apply moving average function
+def movingAverageFunc(oldDFT, currentDFT, buffer_length, ratio):
+    # start index in the array of the old dft
+    start_index_old_fft = buffer_length - int(buffer_length * ratio)
+    # end index in the array of the new dft
+    end_index_new_fft = int(buffer_length * ratio)
+    # Average of 2 arrays of samples (with same buff_len length)
+    currentDFT[:end_index_new_fft] = 0.5 * (oldDFT[start_index_old_fft:] + currentDFT[:end_index_new_fft])
+    return currentDFT
+
+
 # print the main menu for our spectrum analyzer
 def printMenu():
     '''Choose one from the options:
@@ -162,12 +173,7 @@ if __name__ == '__main__':
 
         # Applying Moving Average Function
         if movingAverageBool:
-            # start index in the array of the old dft
-            startIndexOldDFT = buff_len - int(buff_len * movingAverageRatio)
-            # end index in the array of the old dft
-            endIndexNewDFT = int(buff_len * movingAverageRatio)
-            # Average of 2 arrays of samples (with same buff_len length)
-            dftMovingAverage[:endIndexNewDFT] = 0.5 * (dftOld[startIndexOldDFT:] + dftMovingAverage[:endIndexNewDFT])
+            dftMovingAverage = movingAverageFunc(dftOld, dftMovingAverage, buff_len, movingAverageRatio)
 
         if maxHoldBool and (not movingAverageBool):
             # User applied Max Hold without Moving Average
@@ -187,6 +193,7 @@ if __name__ == '__main__':
             # User applied Moving Average without Max Hold
             # Output would be the new samples after movingAverage function
             signal = dftMovingAverage
+
 
         # update the plot
         plotUpdate(line, signal, freqs, rx_freq)
