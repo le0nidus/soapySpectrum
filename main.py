@@ -7,7 +7,7 @@ from pyfftw.interfaces import numpy_fft as fastnumpyfft
 from matplotlib import pyplot as plt
 import keyboard
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication,QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow
 import sys
 
 
@@ -58,16 +58,16 @@ def quitStream(sdrDevice, stream):
 
 # print the main menu for our spectrum analyzer
 def printMenu():
-    print("Choose one from the options:")
-    print("1 - Change RX frequency")
-    print("2 - Enable max hold")
-    print("3 - Disable max hold")
-    print("4 - Enable moving average")
-    print("5 - Disable moving average")
-    print("6 - Change moving average ratio")
-    print("7 - Clear plot")
-    print("8 - Print menu again")
-    print("9 - Quit")
+    '''Choose one from the options:
+    1 - Change RX frequency
+    2 - Enable max hold
+    3 - Disable max hold
+    4 - Enable moving average
+    5 - Disable moving average
+    6 - Change moving average ratio
+    7 - Clear plot
+    8 - Print menu again
+    9 - Quit'''
 
 
 if __name__ == '__main__':
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     plt.ylabel("RSSI")
 
     # print menu
-    printMenu()
+    print(printMenu.__doc__)
 
     dft = np.array(np.zeros(buff_len))
     dftMaxHold = np.array(np.zeros(buff_len))
@@ -187,7 +187,7 @@ if __name__ == '__main__':
             print("\nClearing plot...")
             clearPlotBool = True
         elif keyboard.is_pressed("8"):
-            printMenu()
+            print(printMenu.__doc__)
         elif keyboard.is_pressed("9"):
             print("\nYou chose to quit, ending loop")
             runBool = False
