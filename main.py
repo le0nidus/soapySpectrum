@@ -1,8 +1,9 @@
 import SoapySDR
 # from SoapySDR import *  # SOAPY_SDR_ constants
-from SoapySDR import Device, SOAPY_SDR_RX, SOAPY_SDR_CF32, SOAPY_SDR_CS16
+from SoapySDR import Device, SOAPY_SDR_RX, SOAPY_SDR_CF32, SOAPY_SDR_CS16, SOAPY_SDR_CU16
 import numpy as np  # use numpy for buffers
-import pyfftw
+from pyfftw import interfaces
+from pyfftw.interfaces import numpy_fft as fastnumpyfft
 from matplotlib import pyplot as plt
 import keyboard
 from PyQt5 import QtWidgets
@@ -43,16 +44,16 @@ def plotUpdate(ln, sig, frequencies, rxfreq):
 
 # setup a stream (complex floats)
 def setStream(sdrDevice):
-    rxStream = sdrDevice.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
-    print(sdr.getStreamMTU(rxStream))
-    sdr.activateStream(rxStream)  # start streaming
-    return rxStream
+    stream = sdrDevice.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
+    print(sdr.getStreamMTU(stream))
+    sdrDevice.activateStream(stream)  # start streaming
+    return stream
 
 
 # stop the stream and shutdown
-def quitStream(sdrDevice, rxStream):
-    sdr.deactivateStream(rxStream)  # stop streaming
-    sdr.closeStream(rxStream)
+def quitStream(sdrDevice, stream):
+    sdrDevice.deactivateStream(stream)  # stop streaming
+    sdrDevice.closeStream(stream)
 
 
 # print the main menu for our spectrum analyzer
@@ -94,17 +95,16 @@ if __name__ == '__main__':
     RX_gain = 30
     movingAverageRatio = 0.125
 
-    initializeHackRF(samp_rate, rx_freq, bandwidth,RX_gain)
+    initializeHackRF(samp_rate, rx_freq, bandwidth, RX_gain)
 
     # setup a stream
     rxStream = setStream(sdr)
 
     # create a re-usable buffer for rx samples
-    buff = np.array([0] * buff_len, np.complex64)
+    buff = np.zeros(buff_len, dtype=np.complex64)
 
     # create the plot and the frequency vector
-    # freqs = np.fft.fftshift(np.fft.fftfreq(buff_len, d=1/samp_rate))
-    freqs = pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.numpy_fft.fftfreq(buff_len, d=1/samp_rate))
+    freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(buff_len, d=1/samp_rate))
     (line, ) = plt.plot((freqs + rx_freq)/1e6, np.zeros(np.size(freqs)))
     plt.xlabel("Frequency (MHz)")
     plt.ylabel("RSSI")
@@ -134,10 +134,7 @@ if __name__ == '__main__':
         # print(dft)  # print the values received
 
         # Perform dft on the samples
-        # 1 - regular numpy fft
-        # dft = np.fft.fftshift(np.fft.fft(buff, buff_len))
-        # 2 - faster pyfftw package fft
-        dft = pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.numpy_fft.fft(buff, buff_len))
+        dft = fastnumpyfft.fftshift(fastnumpyfft.fft(buff, buff_len))
         dftMovingAverage = dft
         signal = dft
 
