@@ -187,7 +187,6 @@ if __name__ == '__main__':
     dftMaxHold = np.zeros(buff_len)
 
 
-
     # receive samples
     while runBool:
         # save old dft samples for later use
@@ -219,7 +218,6 @@ if __name__ == '__main__':
             dftMovingAverage = movingAverageFunc(dftOld, dftMovingAverage, buff_len, movingAverageRatio)
 
         signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold, dftMovingAverage)
-
 
         # update the plot
         plotUpdate(line, signal, freqs, rx_freq)
