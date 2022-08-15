@@ -1,5 +1,6 @@
 import SoapySDR
-from SoapySDR import *  # SOAPY_SDR_ constants
+# from SoapySDR import *  # SOAPY_SDR_ constants
+from SoapySDR import Device, SOAPY_SDR_RX, SOAPY_SDR_CF32, SOAPY_SDR_CS16
 import numpy as np  # use numpy for buffers
 import pyfftw
 from matplotlib import pyplot as plt
