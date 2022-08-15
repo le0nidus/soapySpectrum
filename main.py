@@ -113,8 +113,10 @@ if __name__ == '__main__':
     # create a re-usable buffer for rx samples
     buff = np.zeros(buff_len, dtype=np.complex64)
 
-    # create the plot and the frequency vector
+    # create the frequency vector, it depends on buff_len and samp_rate
     freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(buff_len, d=1/samp_rate))
+
+    # initiate the plot
     (line, ) = plt.plot((freqs + rx_freq)/1e6, np.zeros(np.size(freqs)))
     plt.xlabel("Frequency (MHz)")
     plt.ylabel("RSSI")
@@ -132,12 +134,16 @@ if __name__ == '__main__':
 
     # receive samples
     while runBool:
+        # save old dft samples for later use
         dftOld = dft
+
         # get the samples into the buffer
         sr = sdr.readStream(rxStream, [buff], len(buff))
 
+        # normalize the values
         if np.max(np.abs(buff)) != 0:
             buff = buff / np.max(np.abs(buff))
+
         # print(sr.ret)  # num samples or error code
         # print(sr.flags)  # flags set by receive operation
         # print(sr.timeNs)  # timestamp for receive buffer
@@ -148,25 +154,38 @@ if __name__ == '__main__':
         dftMovingAverage = dft
         signal = dft
 
+        # If the user wants to clear the plot
         if clearPlotBool:
-            dftMaxHold = dft
-            dftMovingAverage = dft
+            dftMaxHold = dft # Reset Max Hold values to current values
+            dftMovingAverage = dft # Reset moving Average values to current values
             clearPlotBool = False
 
+        # Applying Moving Average Function
         if movingAverageBool:
+            # start index in the array of the old dft
             startIndexOldDFT = buff_len - int(buff_len * movingAverageRatio)
+            # end index in the array of the old dft
             endIndexNewDFT = int(buff_len * movingAverageRatio)
+            # Average of 2 arrays of samples (with same buff_len length)
             dftMovingAverage[:endIndexNewDFT] = 0.5 * (dftOld[startIndexOldDFT:] + dftMovingAverage[:endIndexNewDFT])
 
         if maxHoldBool and (not movingAverageBool):
+            # User applied Max Hold without Moving Average
+            # Output would be max from the new samples and old max hold samples
             dftMaxHold = np.maximum(dft, dftMaxHold)
             signal = dftMaxHold
         elif (not maxHoldBool) and (not movingAverageBool):
+            # User did not apply any function
+            # Output would be the new dft samples
             signal = dft
         if maxHoldBool and movingAverageBool:
+            # User applied Max Hold **AND** Moving Average
+            # Output would be max from the new samples after movingAverage function and old max hold samples
             dftMaxHold = np.maximum(dftMovingAverage, dftMaxHold)
             signal = dftMaxHold
         elif (not maxHoldBool) and movingAverageBool:
+            # User applied Moving Average without Max Hold
+            # Output would be the new samples after movingAverage function
             signal = dftMovingAverage
 
         # update the plot
