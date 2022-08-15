@@ -195,8 +195,4 @@ if __name__ == '__main__':
 
 
     # shutdown the stream
-    sdr.deactivateStream(rxStream)  # stop streaming
-    sdr.closeStream(rxStream)
-
-
-
+    quitStream(sdr, rxStream)
