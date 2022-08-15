@@ -29,6 +29,7 @@ def window():
     label.setText("myLabel")
     label.move(50, 50)
     win.show()
+    app.exec_()
 
 
 # apply initial settings to HackRF device
@@ -74,6 +75,17 @@ def movingAverageFunc(oldDFT, currentDFT, buffer_length, ratio):
     return currentDFT
 
 
+# Clear the arrays
+def clearPlotFunc(newSamps):
+    # clear max hold dft
+    mxHldDFT = newSamps
+    # clear moving average dft
+    mvgAvgDFT = newSamps
+    # stop clearing on next iteration
+    clrPltBool = False
+    return mxHldDFT, mvgAvgDFT, clrPltBool
+
+
 # print the main menu for our spectrum analyzer
 def printMenu():
     '''Choose one from the options:
@@ -91,7 +103,7 @@ def printMenu():
 if __name__ == '__main__':
     # window()
 
-    # enumerate devices
+    # show soapySDR devices available
     results = SoapySDR.Device.enumerate()
     for result in results: print(result)
 
@@ -112,6 +124,11 @@ if __name__ == '__main__':
     buff_len = configfile.BUFFER_LENGTH
     RX_gain = configfile.RX_GAIN
     movingAverageRatio = configfile.MOVING_AVERAGE_RATIO
+
+    runBool = configfile.BOOL_RUN
+    maxHoldBool = configfile.BOOL_MAX_HOLD
+    clearPlotBool = configfile.BOOL_CLEAR_PLOT
+    movingAverageBool = configfile.BOOL_MOOVING_AVERAGE
 
     #in keyboard is_pressed it re-prints if the function won't sleep
     cancelRePrintSleepTime = configfile.CANCEL_REPRINT_SLEEP_TIME
@@ -138,10 +155,7 @@ if __name__ == '__main__':
     dft = np.zeros(buff_len)
     dftMaxHold = np.zeros(buff_len)
 
-    runBool = configfile.BOOL_RUN
-    maxHoldBool = configfile.BOOL_MAX_HOLD
-    clearPlotBool = configfile.BOOL_CLEAR_PLOT
-    movingAverageBool = configfile.BOOL_MOOVING_AVERAGE
+
 
     # receive samples
     while runBool:
@@ -167,9 +181,7 @@ if __name__ == '__main__':
 
         # If the user wants to clear the plot
         if clearPlotBool:
-            dftMaxHold = dft # Reset Max Hold values to current values
-            dftMovingAverage = dft # Reset moving Average values to current values
-            clearPlotBool = False
+            dftMaxHold, dftMovingAverage,  clearPlotBool = clearPlotFunc(dft)
 
         # Applying Moving Average Function
         if movingAverageBool:
