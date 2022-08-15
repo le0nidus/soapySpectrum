@@ -9,6 +9,7 @@ import keyboard
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow
 import sys
+import time
 
 
 def window():
@@ -95,6 +96,9 @@ if __name__ == '__main__':
     RX_gain = 30
     movingAverageRatio = 0.125
 
+    #in keyboard is_pressed it re-prints if the function won't sleep
+    cancelRePrintSleepTime = 0.12
+
     initializeHackRF(samp_rate, rx_freq, bandwidth, RX_gain)
 
     # setup a stream
@@ -112,8 +116,8 @@ if __name__ == '__main__':
     # print menu
     print(printMenu.__doc__)
 
-    dft = np.array(np.zeros(buff_len))
-    dftMaxHold = np.array(np.zeros(buff_len))
+    dft = np.zeros(buff_len)
+    dftMaxHold = np.zeros(buff_len)
 
     runBool = True
     maxHoldBool = False
@@ -126,8 +130,8 @@ if __name__ == '__main__':
         # get the samples into the buffer
         sr = sdr.readStream(rxStream, [buff], len(buff))
 
-        if np.max(buff) != 0:
-            buff = buff / np.max(buff)
+        if np.max(np.abs(buff)) != 0:
+            buff = buff / np.max(np.abs(buff))
         # print(sr.ret)  # num samples or error code
         # print(sr.flags)  # flags set by receive operation
         # print(sr.timeNs)  # timestamp for receive buffer
@@ -172,22 +176,28 @@ if __name__ == '__main__':
         elif keyboard.is_pressed("2"):
             print("\nMax Hold enabled")
             maxHoldBool = True
+            time.sleep(cancelRePrintSleepTime)
         elif keyboard.is_pressed("3"):
             print("\nMax Hold disabled")
             maxHoldBool = False
+            time.sleep(cancelRePrintSleepTime)
         elif keyboard.is_pressed("4"):
             print("\nMoving Average enabled")
             movingAverageBool = True
+            time.sleep(cancelRePrintSleepTime)
         elif keyboard.is_pressed("5"):
             print("\nMoving Average disabled")
             movingAverageBool = False
+            time.sleep(cancelRePrintSleepTime)
         elif keyboard.is_pressed("6"):
             movingAverageRatio = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
         elif keyboard.is_pressed("7"):
             print("\nClearing plot...")
             clearPlotBool = True
+            time.sleep(cancelRePrintSleepTime)
         elif keyboard.is_pressed("8"):
             print(printMenu.__doc__)
+            time.sleep(cancelRePrintSleepTime)
         elif keyboard.is_pressed("9"):
             print("\nYou chose to quit, ending loop")
             runBool = False
