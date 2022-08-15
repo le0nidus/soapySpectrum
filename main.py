@@ -9,6 +9,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication,QMainWindow
 import sys
 
+
 def window():
     app = QApplication(sys.argv)
     win = QMainWindow()
@@ -20,6 +21,7 @@ def window():
     label.move(50, 50)
 
     win.show()
+
 
 # apply initial settings to HackRF device
 def initializeHackRF(fs, f_rx, bw, gain):
@@ -39,6 +41,21 @@ def plotUpdate(ln, sig, frequencies, rxfreq):
     plt.pause(0.01)
 
 
+# setup a stream (complex floats)
+def setStream(sdrDevice):
+    rxStream = sdrDevice.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
+    print(sdr.getStreamMTU(rxStream))
+    sdr.activateStream(rxStream)  # start streaming
+    return rxStream
+
+
+# stop the stream and shutdown
+def quitStream(sdrDevice, rxStream):
+    sdr.deactivateStream(rxStream)  # stop streaming
+    sdr.closeStream(rxStream)
+
+
+# print the main menu for our spectrum analyzer
 def printMenu():
     print("Choose one from the options:")
     print("1 - Change RX frequency")
@@ -50,6 +67,7 @@ def printMenu():
     print("7 - Clear plot")
     print("8 - Print menu again")
     print("9 - Quit")
+
 
 if __name__ == '__main__':
     # window()
@@ -78,10 +96,8 @@ if __name__ == '__main__':
 
     initializeHackRF(samp_rate, rx_freq, bandwidth,RX_gain)
 
-    # setup a stream (complex floats)
-    rxStream = sdr.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
-    print(sdr.getStreamMTU(rxStream))
-    sdr.activateStream(rxStream)  # start streaming
+    # setup a stream
+    rxStream = setStream(sdr)
 
     # create a re-usable buffer for rx samples
     buff = np.array([0] * buff_len, np.complex64)
