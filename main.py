@@ -50,139 +50,139 @@ def printMenu():
     print("8 - Print menu again")
     print("9 - Quit")
 
+if __name__ == '__main__':
+    # window()
 
-# window()
+    # enumerate devices
+    results = SoapySDR.Device.enumerate()
+    for result in results: print(result)
 
-# enumerate devices
-results = SoapySDR.Device.enumerate()
-for result in results: print(result)
+    # create device instance
+    # args can be user defined or from the enumeration result
+    args = dict(driver="hackrf")
+    sdr = SoapySDR.Device(args)
 
-# create device instance
-# args can be user defined or from the enumeration result
-args = dict(driver="hackrf")
-sdr = SoapySDR.Device(args)
+    # query device info
+    print(sdr.listAntennas(SOAPY_SDR_RX, 0))
+    print(sdr.listGains(SOAPY_SDR_RX, 0))
+    # freqs = sdr.getFrequencyRange(SOAPY_SDR_RX, 0)
+    # for freqRange in freqs: print(freqRange)
 
-# query device info
-print(sdr.listAntennas(SOAPY_SDR_RX, 0))
-print(sdr.listGains(SOAPY_SDR_RX, 0))
-# freqs = sdr.getFrequencyRange(SOAPY_SDR_RX, 0)
-# for freqRange in freqs: print(freqRange)
+    bandwidth = 1.75e6
+    samp_rate = 4e6
+    rx_freq = 315e6
+    buff_len = 256
+    RX_gain = 30
+    movingAverageRatio = 0.125
 
-bandwidth = 1.75e6
-samp_rate = 4e6
-rx_freq = 315e6
-buff_len = 256
-RX_gain = 30
-movingAverageRatio = 0.125
+    initializeHackRF(samp_rate, rx_freq, bandwidth,RX_gain)
 
-initializeHackRF(samp_rate, rx_freq, bandwidth,RX_gain)
+    # setup a stream (complex floats)
+    rxStream = sdr.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
+    print(sdr.getStreamMTU(rxStream))
+    sdr.activateStream(rxStream)  # start streaming
 
-# setup a stream (complex floats)
-rxStream = sdr.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
-print(sdr.getStreamMTU(rxStream))
-sdr.activateStream(rxStream)  # start streaming
+    # create a re-usable buffer for rx samples
+    buff = np.array([0] * buff_len, np.complex64)
 
-# create a re-usable buffer for rx samples
-buff = np.array([0] * buff_len, np.complex64)
+    # create the plot and the frequency vector
+    # freqs = np.fft.fftshift(np.fft.fftfreq(buff_len, d=1/samp_rate))
+    freqs = pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.numpy_fft.fftfreq(buff_len, d=1/samp_rate))
+    (line, ) = plt.plot((freqs + rx_freq)/1e6, np.zeros(np.size(freqs)))
+    plt.xlabel("Frequency (MHz)")
+    plt.ylabel("RSSI")
 
-# create the plot and the frequency vector
-# freqs = np.fft.fftshift(np.fft.fftfreq(buff_len, d=1/samp_rate))
-freqs = pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.numpy_fft.fftfreq(buff_len, d=1/samp_rate))
-(line, ) = plt.plot((freqs + rx_freq)/1e6, np.zeros(np.size(freqs)))
-plt.xlabel("Frequency (MHz)")
-plt.ylabel("RSSI")
+    # print menu
+    printMenu()
 
-# print menu
-printMenu()
+    dft = np.array(np.zeros(buff_len))
+    dftMaxHold = np.array(np.zeros(buff_len))
 
-dft = np.array(np.zeros(buff_len))
-dftMaxHold = np.array(np.zeros(buff_len))
+    runBool = True
+    maxHoldBool = False
+    clearPlotBool = False
+    movingAverageBool = False
 
-runBool = True
-maxHoldBool = False
-clearPlotBool = False
-movingAverageBool = False
+    # receive samples
+    while runBool:
+        dftOld = dft
+        # get the samples into the buffer
+        sr = sdr.readStream(rxStream, [buff], len(buff))
 
-# receive samples
-while runBool:
-    dftOld = dft
-    # get the samples into the buffer
-    sr = sdr.readStream(rxStream, [buff], len(buff))
+        if np.max(buff) != 0:
+            buff = buff / np.max(buff)
+        # print(sr.ret)  # num samples or error code
+        # print(sr.flags)  # flags set by receive operation
+        # print(sr.timeNs)  # timestamp for receive buffer
+        # print(dft)  # print the values received
 
-    if np.max(buff) != 0:
-        buff = buff / np.max(buff)
-    # print(sr.ret)  # num samples or error code
-    # print(sr.flags)  # flags set by receive operation
-    # print(sr.timeNs)  # timestamp for receive buffer
-    # print(dft)  # print the values received
-
-    # Perform dft on the samples
-    # 1 - regular numpy fft
-    # dft = np.fft.fftshift(np.fft.fft(buff, buff_len))
-    # 2 - faster pyfftw package fft
-    dft = pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.numpy_fft.fft(buff, buff_len))
-    dftMovingAverage = dft
-    signal = dft
-
-    if clearPlotBool:
-        dftMaxHold = dft
+        # Perform dft on the samples
+        # 1 - regular numpy fft
+        # dft = np.fft.fftshift(np.fft.fft(buff, buff_len))
+        # 2 - faster pyfftw package fft
+        dft = pyfftw.interfaces.numpy_fft.fftshift(pyfftw.interfaces.numpy_fft.fft(buff, buff_len))
         dftMovingAverage = dft
-        clearPlotBool = False
-
-    if movingAverageBool:
-        startIndexOldDFT = buff_len - int(buff_len * movingAverageRatio)
-        endIndexNewDFT = int(buff_len * movingAverageRatio)
-        dftMovingAverage[:endIndexNewDFT] = 0.5 * (dftOld[startIndexOldDFT:] + dftMovingAverage[:endIndexNewDFT])
-
-    if maxHoldBool and (not movingAverageBool):
-        dftMaxHold = np.maximum(dft, dftMaxHold)
-        signal = dftMaxHold
-    elif (not maxHoldBool) and (not movingAverageBool):
         signal = dft
-    if maxHoldBool and movingAverageBool:
-        dftMaxHold = np.maximum(dftMovingAverage, dftMaxHold)
-        signal = dftMaxHold
-    elif (not maxHoldBool) and movingAverageBool:
-        signal = dftMovingAverage
 
-    # update the plot
-    plotUpdate(line, signal, freqs, rx_freq)
+        if clearPlotBool:
+            dftMaxHold = dft
+            dftMovingAverage = dft
+            clearPlotBool = False
 
-    # print out the maximum value in the spectrum analyzer
-    # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
+        if movingAverageBool:
+            startIndexOldDFT = buff_len - int(buff_len * movingAverageRatio)
+            endIndexNewDFT = int(buff_len * movingAverageRatio)
+            dftMovingAverage[:endIndexNewDFT] = 0.5 * (dftOld[startIndexOldDFT:] + dftMovingAverage[:endIndexNewDFT])
 
-    if keyboard.is_pressed("1"):
-        rx_freq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
-        sdr.setFrequency(SOAPY_SDR_RX, 0, rx_freq)
-        clearPlotBool = True
-    elif keyboard.is_pressed("2"):
-        print("\nMax Hold enabled")
-        maxHoldBool = True
-    elif keyboard.is_pressed("3"):
-        print("\nMax Hold disabled")
-        maxHoldBool = False
-    elif keyboard.is_pressed("4"):
-        print("\nMoving Average enabled")
-        movingAverageBool = True
-    elif keyboard.is_pressed("5"):
-        print("\nMoving Average disabled")
-        movingAverageBool = False
-    elif keyboard.is_pressed("6"):
-        movingAverageRatio = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
-    elif keyboard.is_pressed("7"):
-        print("\nClearing plot...")
-        clearPlotBool = True
-    elif keyboard.is_pressed("8"):
-        printMenu()
-    elif keyboard.is_pressed("9"):
-        print("\nYou chose to quit, ending loop")
-        runBool = False
+        if maxHoldBool and (not movingAverageBool):
+            dftMaxHold = np.maximum(dft, dftMaxHold)
+            signal = dftMaxHold
+        elif (not maxHoldBool) and (not movingAverageBool):
+            signal = dft
+        if maxHoldBool and movingAverageBool:
+            dftMaxHold = np.maximum(dftMovingAverage, dftMaxHold)
+            signal = dftMaxHold
+        elif (not maxHoldBool) and movingAverageBool:
+            signal = dftMovingAverage
+
+        # update the plot
+        plotUpdate(line, signal, freqs, rx_freq)
+
+        # print out the maximum value in the spectrum analyzer
+        # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
+
+        if keyboard.is_pressed("1"):
+            rx_freq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
+            sdr.setFrequency(SOAPY_SDR_RX, 0, rx_freq)
+            clearPlotBool = True
+        elif keyboard.is_pressed("2"):
+            print("\nMax Hold enabled")
+            maxHoldBool = True
+        elif keyboard.is_pressed("3"):
+            print("\nMax Hold disabled")
+            maxHoldBool = False
+        elif keyboard.is_pressed("4"):
+            print("\nMoving Average enabled")
+            movingAverageBool = True
+        elif keyboard.is_pressed("5"):
+            print("\nMoving Average disabled")
+            movingAverageBool = False
+        elif keyboard.is_pressed("6"):
+            movingAverageRatio = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
+        elif keyboard.is_pressed("7"):
+            print("\nClearing plot...")
+            clearPlotBool = True
+        elif keyboard.is_pressed("8"):
+            printMenu()
+        elif keyboard.is_pressed("9"):
+            print("\nYou chose to quit, ending loop")
+            runBool = False
 
 
 
-# shutdown the stream
-sdr.deactivateStream(rxStream)  # stop streaming
-sdr.closeStream(rxStream)
+    # shutdown the stream
+    sdr.deactivateStream(rxStream)  # stop streaming
+    sdr.closeStream(rxStream)
 
 
 
