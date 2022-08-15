@@ -1,14 +1,20 @@
+# SoapySDR is the API for the hackrf
 import SoapySDR
-# from SoapySDR import *  # SOAPY_SDR_ constants
 from SoapySDR import Device, SOAPY_SDR_RX, SOAPY_SDR_CF32, SOAPY_SDR_CS16, SOAPY_SDR_CU16
-import numpy as np  # use numpy for buffers
+# Using pyfftw instead of numpy to calculate fft faster
 from pyfftw import interfaces
 from pyfftw.interfaces import numpy_fft as fastnumpyfft
+# use numpy for buffers
+import numpy as np
+# use pyplot for plotting
 from matplotlib import pyplot as plt
-import keyboard
+# use PyQt5 for GUI
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow
 import sys
+# use keyboard for getting menu choices from the user
+import keyboard
+# use time for creating delays (remove re-prints)
 import time
 
 
@@ -17,11 +23,9 @@ def window():
     win = QMainWindow()
     win.setGeometry(200, 200, 300, 300)
     win.setWindowTitle("soapySpectrum Menu")
-
     label = QtWidgets.QLabel(win)
     label.setText("myLabel")
     label.move(50, 50)
-
     win.show()
 
 
