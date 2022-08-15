@@ -40,10 +40,11 @@ def initializeHackRF(fs, f_rx, bw, gain):
     sdr.setGain(SOAPY_SDR_RX, 0, gain)
 
 
+#update the plot with new data
 def plotUpdate(ln, sig, frequencies, rxfreq):
-    ln.set_ydata(np.abs(sig))
+    ln.set_ydata(np.abs(sig)) # update the data on y axis
     # ln.set_ydata(np.log10(np.abs(sig)))
-    ln.set_xdata((frequencies + rxfreq)/1e6)
+    ln.set_xdata((frequencies + rxfreq)/1e6)  # update the data on x axis (if user changed frequency)
     # plt.ylim(0, 1200)
     plt.gca().relim()
     plt.gca().autoscale_view()
