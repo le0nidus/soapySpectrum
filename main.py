@@ -86,6 +86,36 @@ def clearPlotFunc(newSamps):
     return mxHldDFT, mvgAvgDFT, clrPltBool
 
 
+def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT):
+    '''According to user choice, if he chose
+    Moving Average / Max Hold / Both
+    The code will return the appropriate signal'''
+    if mxHldBool and (not mvgAvgBool):
+        # User applied Max Hold without Moving Average
+        # Output would be max from the new samples and old max hold samples
+        mxHldDFT = np.maximum(currDFT, mxHldDFT)
+        sig = mxHldDFT
+        return sig, mxHldDFT
+    elif (not mxHldBool) and (not mvgAvgBool):
+        # User did not apply any function
+        # Output would be the new dft samples
+        sig = currDFT
+        return sig, mxHldDFT
+    if mxHldBool and mvgAvgBool:
+        # User applied Max Hold **AND** Moving Average
+        # Output would be max from the new samples after movingAverage function and old max hold samples
+        mxHldDFT = np.maximum(mvgAvgDFT, mxHldDFT)
+        sig = mxHldDFT
+        return sig, mxHldDFT
+    elif (not mxHldBool) and mvgAvgBool:
+        # User applied Moving Average without Max Hold
+        # Output would be the new samples after movingAverage function
+        sig = mvgAvgDFT
+        return sig, mxHldDFT
+
+
+
+
 # print the main menu for our spectrum analyzer
 def printMenu():
     '''Choose one from the options:
@@ -187,24 +217,7 @@ if __name__ == '__main__':
         if movingAverageBool:
             dftMovingAverage = movingAverageFunc(dftOld, dftMovingAverage, buff_len, movingAverageRatio)
 
-        if maxHoldBool and (not movingAverageBool):
-            # User applied Max Hold without Moving Average
-            # Output would be max from the new samples and old max hold samples
-            dftMaxHold = np.maximum(dft, dftMaxHold)
-            signal = dftMaxHold
-        elif (not maxHoldBool) and (not movingAverageBool):
-            # User did not apply any function
-            # Output would be the new dft samples
-            signal = dft
-        if maxHoldBool and movingAverageBool:
-            # User applied Max Hold **AND** Moving Average
-            # Output would be max from the new samples after movingAverage function and old max hold samples
-            dftMaxHold = np.maximum(dftMovingAverage, dftMaxHold)
-            signal = dftMaxHold
-        elif (not maxHoldBool) and movingAverageBool:
-            # User applied Moving Average without Max Hold
-            # Output would be the new samples after movingAverage function
-            signal = dftMovingAverage
+        signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold, dftMovingAverage)
 
 
         # update the plot
