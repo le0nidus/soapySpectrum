@@ -16,6 +16,8 @@ import sys
 import keyboard
 # use time for creating delays (remove re-prints)
 import time
+# use the defaults from variable file
+import configfile
 
 
 def window():
@@ -93,15 +95,15 @@ if __name__ == '__main__':
     # freqs = sdr.getFrequencyRange(SOAPY_SDR_RX, 0)
     # for freqRange in freqs: print(freqRange)
 
-    bandwidth = 1.75e6
-    samp_rate = 4e6
-    rx_freq = 315e6
-    buff_len = 256
-    RX_gain = 30
-    movingAverageRatio = 0.125
+    bandwidth = configfile.BANDWIDTH
+    samp_rate = configfile.SAMPLE_RATE
+    rx_freq = configfile.RX_FREQ
+    buff_len = configfile.BUFFER_LENGTH
+    RX_gain = configfile.RX_GAIN
+    movingAverageRatio = configfile.MOVING_AVERAGE_RATIO
 
     #in keyboard is_pressed it re-prints if the function won't sleep
-    cancelRePrintSleepTime = 0.12
+    cancelRePrintSleepTime = configfile.CANCEL_REPRINT_SLEEP_TIME
 
     initializeHackRF(samp_rate, rx_freq, bandwidth, RX_gain)
 
@@ -123,10 +125,10 @@ if __name__ == '__main__':
     dft = np.zeros(buff_len)
     dftMaxHold = np.zeros(buff_len)
 
-    runBool = True
-    maxHoldBool = False
-    clearPlotBool = False
-    movingAverageBool = False
+    runBool = configfile.BOOL_RUN
+    maxHoldBool = configfile.BOOL_MAX_HOLD
+    clearPlotBool = configfile.BOOL_CLEAR_PLOT
+    movingAverageBool = configfile.BOOL_MOOVING_AVERAGE
 
     # receive samples
     while runBool:
