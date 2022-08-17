@@ -223,7 +223,8 @@ if __name__ == '__main__':
     maxHoldBool = configfile.BOOL_MAX_HOLD
     clearPlotBool = configfile.BOOL_CLEAR_PLOT
     movingAverageBool = configfile.BOOL_MOOVING_AVERAGE
-    logScaleBool = False
+    logScaleBool = configfile.BOOL_LOG_SCALE
+    sneakLOBool = configfile.BOOL_SNEAK_FROM_LO
 
     #in keyboard is_pressed it re-prints if the function won't sleep
     cancelRePrintSleepTime = configfile.CANCEL_REPRINT_SLEEP_TIME
@@ -287,9 +288,13 @@ if __name__ == '__main__':
         if clearPlotBool:
             dftMaxHold, dftMovingAverage,  clearPlotBool = clearPlotFunc(dft)
 
+        # If the user wants to sneak from LO
+        if sneakLOBool:
+            dftSneakedSig = sneakFromLO(dft)
+
         # Applying Moving Average Function
         if movingAverageBool:
-            dftMovingAverage = movingAverageFunc(dftOld, dftMovingAverage, buff_len, movingAverageRatio)
+            dftMovingAverage = movingAverageFunc(dftOld, dft, buff_len, movingAverageRatio)
 
         signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold, dftMovingAverage)
 
