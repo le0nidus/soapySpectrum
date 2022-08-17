@@ -41,10 +41,12 @@ def initializeHackRF(fs, f_rx, bw, gain):
 
 
 # update the plot with new data - one way
-def plotUpdateOne(ln, sig, frequencies, rxfreq):
-    ln.set_ydata(np.abs(sig)) # update the data on y axis
-    # ln.set_ydata(np.log10(np.abs(sig)))
+def plotUpdateOne(ln, sig, frequencies, rxfreq, lgSclBool):
     ln.set_xdata((frequencies + rxfreq)/1e6)  # update the data on x axis (if user changed frequency)
+    if lgSclBool:
+        ln.set_ydata(np.log10(np.abs(sig)))
+    else:
+        ln.set_ydata(np.abs(sig)) # update the data on y axis
     # plt.ylim(0, 1200)
     plt.gca().relim()
     plt.gca().autoscale_view()
@@ -52,10 +54,13 @@ def plotUpdateOne(ln, sig, frequencies, rxfreq):
 
 
 # update the plot with new data - second way
-def plotUpdateTwo(ifig, ln, ibg, sig, frequencies, rxfreq, iax):
+def plotUpdateTwo(ifig, ln, ibg, sig, frequencies, rxfreq, iax, lgSclBool):
+    ln.set_xdata((frequencies + rxfreq)/1e6)  # update the data on x axis (if user changed frequency)
+    if lgSclBool:
+        ln.set_ydata(np.log10(np.abs(sig)))
+    else:
+        ln.set_ydata(np.abs(sig)) # update the data on y axis
     ifig.canvas.restore_region(ibg)
-    ln.set_ydata(np.abs(sig))
-    ln.set_xdata((frequencies + rxfreq)/1e6)
     iax.draw_artist(ln)
     ifig.canvas.blit(ifig.bbox)
     ifig.canvas.flush_events()
@@ -100,7 +105,7 @@ def clearPlotFunc(newSamps):
     return mxHldDFT, mvgAvgDFT, clrPltBool
 
 
-def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rnBool):
+def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rnBool, lgSclBool):
     if keyboard.is_pressed("1"):
         myRxFreq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
         mySDR.setFrequency(SOAPY_SDR_RX, 0, myRxFreq)
@@ -109,6 +114,7 @@ def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rn
         if mxHldBool:
             print("\nMax Hold disabled")
             mxHldBool = False
+            clrPltBool = True
         else:
             print("\nMax Hold enabled")
             mxHldBool = True
@@ -124,18 +130,29 @@ def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rn
     elif keyboard.is_pressed("4"):
         mvgAvgRt = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
     elif keyboard.is_pressed("5"):
-        print("\nplot not yet implemented")
+        print("\nSneak from LO mode not yet implemented")
     elif keyboard.is_pressed("6"):
+        print("\nplot not yet implemented")
+        if logScaleBool:
+            print("\nLog scale plot disabled")
+            lgSclBool = False
+            clrPltBool = True
+        else:
+            print("\nLog scale plot enabled")
+            lgSclBool = True
+            clrPltBool = True
+        time.sleep(cancelRePrintSleepTime)
+    elif keyboard.is_pressed("7"):
         print("\nClearing plot...")
         clrPltBool = True
         time.sleep(cancelRePrintSleepTime)
-    elif keyboard.is_pressed("7"):
+    elif keyboard.is_pressed("8"):
         print(printMenu.__doc__)
         time.sleep(cancelRePrintSleepTime)
-    elif keyboard.is_pressed("8"):
+    elif keyboard.is_pressed("9"):
         print("\nYou chose to quit, ending loop")
         rnBool = False
-    return myRxFreq, mySDR, clrPltBool, mxHldBool, mvgAvgBool, mvgAvgRt, rnBool
+    return myRxFreq, mySDR, clrPltBool, mxHldBool, mvgAvgBool, mvgAvgRt, rnBool, lgSclBool
 
 
 def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT):
@@ -170,10 +187,11 @@ def printMenu():
     2 - Enable/Disable max hold
     3 - Enable/Disable moving average
     4 - Change moving average ratio
-    5 - Change plot to dB scale
-    6 - Clear plot
-    7 - Print menu again
-    8 - Quit'''
+    5 - Sneak from LO mode
+    6 - Change plot to dB scale
+    7 - Clear plot
+    8 - Print menu again
+    9 - Quit'''
 
 
 if __name__ == '__main__':
@@ -205,6 +223,7 @@ if __name__ == '__main__':
     maxHoldBool = configfile.BOOL_MAX_HOLD
     clearPlotBool = configfile.BOOL_CLEAR_PLOT
     movingAverageBool = configfile.BOOL_MOOVING_AVERAGE
+    logScaleBool = False
 
     #in keyboard is_pressed it re-prints if the function won't sleep
     cancelRePrintSleepTime = configfile.CANCEL_REPRINT_SLEEP_TIME
@@ -275,16 +294,17 @@ if __name__ == '__main__':
         signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold, dftMovingAverage)
 
         # update the plot - one way
-        plotUpdateOne(line, signal, freqs, rx_freq)
+        plotUpdateOne(line, signal, freqs, rx_freq, logScaleBool)
 
         # # update the plot - second way
-        # plotUpdateTwo(fig, line, bg, signal, freqs, rx_freq, ax)
+        # plotUpdateTwo(fig, line, bg, signal, freqs, rx_freq, ax, logScaleBool)
 
         # print out the maximum value in the spectrum analyzer
         # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
 
-        rx_freq, sdr, clearPlotBool, maxHoldBool, movingAverageBool, movingAverageRatio, runBool = \
-            kbUsrChoice(sdr, maxHoldBool, movingAverageBool, rx_freq, clearPlotBool, movingAverageBool, runBool)
+        rx_freq, sdr, clearPlotBool, maxHoldBool, movingAverageBool, movingAverageRatio, runBool, logScaleBool = \
+            kbUsrChoice(sdr, maxHoldBool, movingAverageBool, rx_freq,
+                        clearPlotBool, movingAverageBool, runBool, logScaleBool)
 
     # shutdown the stream
     quitStream(sdr, rxStream)
