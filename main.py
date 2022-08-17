@@ -40,7 +40,7 @@ def initializeHackRF(fs, f_rx, bw, gain):
     sdr.setGain(SOAPY_SDR_RX, 0, gain)
 
 
-#update the plot with new data
+# update the plot with new data
 def plotUpdate(ln, sig, frequencies, rxfreq):
     ln.set_ydata(np.abs(sig)) # update the data on y axis
     # ln.set_ydata(np.log10(np.abs(sig)))
@@ -150,8 +150,6 @@ def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT)
     return sig, mxHldDFT
 
 
-
-
 # print the main menu for our spectrum analyzer
 def printMenu():
     '''Choose one from the options:
@@ -220,7 +218,6 @@ if __name__ == '__main__':
     dft = np.zeros(buff_len)
     dftMaxHold = np.zeros(buff_len)
 
-
     # receive samples
     while runBool:
         # save old dft samples for later use
@@ -236,7 +233,6 @@ if __name__ == '__main__':
         # print(sr.ret)  # num samples or error code
         # print(sr.flags)  # flags set by receive operation
         # print(sr.timeNs)  # timestamp for receive buffer
-        # print(dft)  # print the values received
 
         # Perform dft on the samples
         dft = fastnumpyfft.fftshift(fastnumpyfft.fft(buff, buff_len))
@@ -259,45 +255,7 @@ if __name__ == '__main__':
         # print out the maximum value in the spectrum analyzer
         # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
 
-        # if keyboard.is_pressed("1"):
-        #     rx_freq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
-        #     sdr.setFrequency(SOAPY_SDR_RX, 0, rx_freq)
-        #     clearPlotBool = True
-        # elif keyboard.is_pressed("2"):
-        #     if maxHoldBool:
-        #         print("\nMax Hold disabled")
-        #         maxHoldBool = False
-        #     else:
-        #         print("\nMax Hold enabled")
-        #         maxHoldBool = True
-        #     time.sleep(cancelRePrintSleepTime)
-        # elif keyboard.is_pressed("3"):
-        #     if movingAverageBool:
-        #         print("\nMoving Average disabled")
-        #         movingAverageBool = False
-        #     else:
-        #         print("\nMoving Average enabled")
-        #         movingAverageBool = True
-        #     time.sleep(cancelRePrintSleepTime)
-        # elif keyboard.is_pressed("4"):
-        #     movingAverageRatio = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
-        # elif keyboard.is_pressed("5"):
-        #     print("\nplot not yet implemented")
-        # elif keyboard.is_pressed("6"):
-        #     print("\nClearing plot...")
-        #     clearPlotBool = True
-        #     time.sleep(cancelRePrintSleepTime)
-        # elif keyboard.is_pressed("7"):
-        #     print(printMenu.__doc__)
-        #     time.sleep(cancelRePrintSleepTime)
-        # elif keyboard.is_pressed("8"):
-        #     print("\nYou chose to quit, ending loop")
-        #     runBool = False
-
         rx_freq, sdr, clearPlotBool, maxHoldBool, movingAverageBool, movingAverageRatio, runBool = kbUsrChoice(sdr, maxHoldBool, movingAverageBool, rx_freq, clearPlotBool, movingAverageBool, runBool)
-
-
-
 
     # shutdown the stream
     quitStream(sdr, rxStream)
