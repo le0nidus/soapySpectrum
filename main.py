@@ -105,7 +105,7 @@ def clearPlotFunc(newSamps):
     return mxHldDFT, mvgAvgDFT, clrPltBool
 
 
-def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rnBool, lgSclBool):
+def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rnBool, lgSclBool, snkLoBool):
     if keyboard.is_pressed("1"):
         myRxFreq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
         mySDR.setFrequency(SOAPY_SDR_RX, 0, myRxFreq)
@@ -130,9 +130,14 @@ def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rn
     elif keyboard.is_pressed("4"):
         mvgAvgRt = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
     elif keyboard.is_pressed("5"):
-        print("\nSneak from LO mode not yet implemented")
+        if snkLoBool:
+            print("\nSneak from LO mode disabled (not yet implemented)")
+            snkLoBool = False
+        else:
+            print("\nSneak from LO mode enabled (not yet implemented)")
+            snkLoBool = True
+        time.sleep(cancelRePrintSleepTime)
     elif keyboard.is_pressed("6"):
-        print("\nplot not yet implemented")
         if logScaleBool:
             print("\nLog scale plot disabled")
             lgSclBool = False
@@ -152,7 +157,7 @@ def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rn
     elif keyboard.is_pressed("9"):
         print("\nYou chose to quit, ending loop")
         rnBool = False
-    return myRxFreq, mySDR, clrPltBool, mxHldBool, mvgAvgBool, mvgAvgRt, rnBool, lgSclBool
+    return myRxFreq, mySDR, clrPltBool, mxHldBool, mvgAvgBool, mvgAvgRt, rnBool, lgSclBool, snkLoBool
 
 
 def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT):
@@ -179,6 +184,9 @@ def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT)
         sig = mvgAvgDFT
     return sig, mxHldDFT
 
+
+def sneakFromLOFunc(dft):
+    return dft
 
 # print the main menu for our spectrum analyzer
 def printMenu():
@@ -286,11 +294,11 @@ if __name__ == '__main__':
 
         # If the user wants to clear the plot
         if clearPlotBool:
-            dftMaxHold, dftMovingAverage,  clearPlotBool = clearPlotFunc(dft)
+            dftMaxHold, dftMovingAverage, clearPlotBool = clearPlotFunc(dft)
 
         # If the user wants to sneak from LO
         if sneakLOBool:
-            dftSneakedSig = sneakFromLO(dft)
+            dftSneakedSig = sneakFromLOFunc(dft)
 
         # Applying Moving Average Function
         if movingAverageBool:
@@ -307,9 +315,9 @@ if __name__ == '__main__':
         # print out the maximum value in the spectrum analyzer
         # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
 
-        rx_freq, sdr, clearPlotBool, maxHoldBool, movingAverageBool, movingAverageRatio, runBool, logScaleBool = \
+        rx_freq, sdr, clearPlotBool, maxHoldBool, movingAverageBool, movingAverageRatio, runBool, logScaleBool, sneakLOBool = \
             kbUsrChoice(sdr, maxHoldBool, movingAverageBool, rx_freq,
-                        clearPlotBool, movingAverageBool, runBool, logScaleBool)
+                        clearPlotBool, movingAverageBool, runBool, logScaleBool, sneakLOBool)
 
     # shutdown the stream
     quitStream(sdr, rxStream)
