@@ -279,11 +279,12 @@ if __name__ == '__main__':
 
         # # update the plot - second way
         # plotUpdateTwo(fig, line, bg, signal, freqs, rx_freq, ax)
-        
+
         # print out the maximum value in the spectrum analyzer
         # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
 
-        rx_freq, sdr, clearPlotBool, maxHoldBool, movingAverageBool, movingAverageRatio, runBool = kbUsrChoice(sdr, maxHoldBool, movingAverageBool, rx_freq, clearPlotBool, movingAverageBool, runBool)
+        rx_freq, sdr, clearPlotBool, maxHoldBool, movingAverageBool, movingAverageRatio, runBool = \
+            kbUsrChoice(sdr, maxHoldBool, movingAverageBool, rx_freq, clearPlotBool, movingAverageBool, runBool)
 
     # shutdown the stream
     quitStream(sdr, rxStream)
