@@ -87,6 +87,44 @@ def clearPlotFunc(newSamps):
     return mxHldDFT, mvgAvgDFT, clrPltBool
 
 
+def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rnBool):
+    if keyboard.is_pressed("1"):
+        myRxFreq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
+        mySDR.setFrequency(SOAPY_SDR_RX, 0, myRxFreq)
+        clrPltBool = True
+    elif keyboard.is_pressed("2"):
+        if mxHldBool:
+            print("\nMax Hold disabled")
+            mxHldBool = False
+        else:
+            print("\nMax Hold enabled")
+            mxHldBool = True
+        time.sleep(cancelRePrintSleepTime)
+    elif keyboard.is_pressed("3"):
+        if mvgAvgBool:
+            print("\nMoving Average disabled")
+            mvgAvgBool = False
+        else:
+            print("\nMoving Average enabled")
+            mvgAvgBool = True
+        time.sleep(cancelRePrintSleepTime)
+    elif keyboard.is_pressed("4"):
+        mvgAvgRt = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
+    elif keyboard.is_pressed("5"):
+        print("\nplot not yet implemented")
+    elif keyboard.is_pressed("6"):
+        print("\nClearing plot...")
+        clrPltBool = True
+        time.sleep(cancelRePrintSleepTime)
+    elif keyboard.is_pressed("7"):
+        print(printMenu.__doc__)
+        time.sleep(cancelRePrintSleepTime)
+    elif keyboard.is_pressed("8"):
+        print("\nYou chose to quit, ending loop")
+        rnBool = False
+    return myRxFreq, mySDR, clrPltBool, mxHldBool, mvgAvgBool, mvgAvgRt, rnBool
+
+
 def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT):
     '''According to user choice, if he chose
     Moving Average / Max Hold / Both
@@ -96,23 +134,20 @@ def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT)
         # Output would be max from the new samples and old max hold samples
         mxHldDFT = np.maximum(currDFT, mxHldDFT)
         sig = mxHldDFT
-        return sig, mxHldDFT
     elif (not mxHldBool) and (not mvgAvgBool):
         # User did not apply any function
         # Output would be the new dft samples
         sig = currDFT
-        return sig, mxHldDFT
     if mxHldBool and mvgAvgBool:
         # User applied Max Hold **AND** Moving Average
         # Output would be max from the new samples after movingAverage function and old max hold samples
         mxHldDFT = np.maximum(mvgAvgDFT, mxHldDFT)
         sig = mxHldDFT
-        return sig, mxHldDFT
     elif (not mxHldBool) and mvgAvgBool:
         # User applied Moving Average without Max Hold
         # Output would be the new samples after movingAverage function
         sig = mvgAvgDFT
-        return sig, mxHldDFT
+    return sig, mxHldDFT
 
 
 
@@ -121,14 +156,13 @@ def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT)
 def printMenu():
     '''Choose one from the options:
     1 - Change RX frequency
-    2 - Enable max hold
-    3 - Disable max hold
-    4 - Enable moving average
-    5 - Disable moving average
-    6 - Change moving average ratio
-    7 - Clear plot
-    8 - Print menu again
-    9 - Quit'''
+    2 - Enable/Disable max hold
+    3 - Enable/Disable moving average
+    4 - Change moving average ratio
+    5 - Change plot to dB scale
+    6 - Clear plot
+    7 - Print menu again
+    8 - Quit'''
 
 
 if __name__ == '__main__':
@@ -225,38 +259,43 @@ if __name__ == '__main__':
         # print out the maximum value in the spectrum analyzer
         # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
 
-        if keyboard.is_pressed("1"):
-            rx_freq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
-            sdr.setFrequency(SOAPY_SDR_RX, 0, rx_freq)
-            clearPlotBool = True
-        elif keyboard.is_pressed("2"):
-            print("\nMax Hold enabled")
-            maxHoldBool = True
-            time.sleep(cancelRePrintSleepTime)
-        elif keyboard.is_pressed("3"):
-            print("\nMax Hold disabled")
-            maxHoldBool = False
-            time.sleep(cancelRePrintSleepTime)
-        elif keyboard.is_pressed("4"):
-            print("\nMoving Average enabled")
-            movingAverageBool = True
-            time.sleep(cancelRePrintSleepTime)
-        elif keyboard.is_pressed("5"):
-            print("\nMoving Average disabled")
-            movingAverageBool = False
-            time.sleep(cancelRePrintSleepTime)
-        elif keyboard.is_pressed("6"):
-            movingAverageRatio = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
-        elif keyboard.is_pressed("7"):
-            print("\nClearing plot...")
-            clearPlotBool = True
-            time.sleep(cancelRePrintSleepTime)
-        elif keyboard.is_pressed("8"):
-            print(printMenu.__doc__)
-            time.sleep(cancelRePrintSleepTime)
-        elif keyboard.is_pressed("9"):
-            print("\nYou chose to quit, ending loop")
-            runBool = False
+        # if keyboard.is_pressed("1"):
+        #     rx_freq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
+        #     sdr.setFrequency(SOAPY_SDR_RX, 0, rx_freq)
+        #     clearPlotBool = True
+        # elif keyboard.is_pressed("2"):
+        #     if maxHoldBool:
+        #         print("\nMax Hold disabled")
+        #         maxHoldBool = False
+        #     else:
+        #         print("\nMax Hold enabled")
+        #         maxHoldBool = True
+        #     time.sleep(cancelRePrintSleepTime)
+        # elif keyboard.is_pressed("3"):
+        #     if movingAverageBool:
+        #         print("\nMoving Average disabled")
+        #         movingAverageBool = False
+        #     else:
+        #         print("\nMoving Average enabled")
+        #         movingAverageBool = True
+        #     time.sleep(cancelRePrintSleepTime)
+        # elif keyboard.is_pressed("4"):
+        #     movingAverageRatio = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
+        # elif keyboard.is_pressed("5"):
+        #     print("\nplot not yet implemented")
+        # elif keyboard.is_pressed("6"):
+        #     print("\nClearing plot...")
+        #     clearPlotBool = True
+        #     time.sleep(cancelRePrintSleepTime)
+        # elif keyboard.is_pressed("7"):
+        #     print(printMenu.__doc__)
+        #     time.sleep(cancelRePrintSleepTime)
+        # elif keyboard.is_pressed("8"):
+        #     print("\nYou chose to quit, ending loop")
+        #     runBool = False
+
+        rx_freq, sdr, clearPlotBool, maxHoldBool, movingAverageBool, movingAverageRatio, runBool = kbUsrChoice(sdr, maxHoldBool, movingAverageBool, rx_freq, clearPlotBool, movingAverageBool, runBool)
+
 
 
 

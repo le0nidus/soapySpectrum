@@ -2,7 +2,7 @@ BANDWIDTH = 1.75e6
 SAMPLE_RATE = 4e6
 RX_FREQ = 315e6
 BUFFER_LENGTH = 256
-RX_GAIN = 30
+RX_GAIN = 45
 MOVING_AVERAGE_RATIO = 0.125
 
 # in keyboard is_pressed it re-prints if the function won't sleep
