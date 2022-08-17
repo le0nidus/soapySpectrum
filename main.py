@@ -40,8 +40,8 @@ def initializeHackRF(fs, f_rx, bw, gain):
     sdr.setGain(SOAPY_SDR_RX, 0, gain)
 
 
-# update the plot with new data
-def plotUpdate(ln, sig, frequencies, rxfreq):
+# update the plot with new data - one way
+def plotUpdateOne(ln, sig, frequencies, rxfreq):
     ln.set_ydata(np.abs(sig)) # update the data on y axis
     # ln.set_ydata(np.log10(np.abs(sig)))
     ln.set_xdata((frequencies + rxfreq)/1e6)  # update the data on x axis (if user changed frequency)
@@ -49,6 +49,19 @@ def plotUpdate(ln, sig, frequencies, rxfreq):
     plt.gca().relim()
     plt.gca().autoscale_view()
     plt.pause(0.01)
+
+
+# update the plot with new data - second way
+def plotUpdateTwo(ifig, ln, ibg, sig, frequencies, rxfreq, iax):
+    ifig.canvas.restore_region(ibg)
+    ln.set_ydata(np.abs(sig))
+    ln.set_xdata((frequencies + rxfreq)/1e6)
+    iax.draw_artist(ln)
+    ifig.canvas.blit(ifig.bbox)
+    ifig.canvas.flush_events()
+    plt.gca().relim()
+    plt.gca().autoscale_view()
+    plt.pause(0.0000001)
 
 
 # setup a stream (complex floats)
@@ -208,7 +221,19 @@ if __name__ == '__main__':
     freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(buff_len, d=1/samp_rate))
 
     # initiate the plot
+
+    # one way of plotting and updating
     (line, ) = plt.plot((freqs + rx_freq)/1e6, np.zeros(np.size(freqs)))
+
+    # # second way of plotting
+    # fig, ax = plt.subplots()
+    # (line,) = ax.plot((freqs + rx_freq) / 1e6, np.zeros(np.size(freqs)), animated=True)
+    # plt.show(block=False)
+    # plt.pause(0.00001)
+    # bg = fig.canvas.copy_from_bbox(fig.bbox)
+    # ax.draw_artist(line)
+    # fig.canvas.blit(fig.bbox)
+
     plt.xlabel("Frequency (MHz)")
     plt.ylabel("RSSI")
 
@@ -249,9 +274,12 @@ if __name__ == '__main__':
 
         signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold, dftMovingAverage)
 
-        # update the plot
-        plotUpdate(line, signal, freqs, rx_freq)
+        # update the plot - one way
+        plotUpdateOne(line, signal, freqs, rx_freq)
 
+        # # update the plot - second way
+        # plotUpdateTwo(fig, line, bg, signal, freqs, rx_freq, ax)
+        
         # print out the maximum value in the spectrum analyzer
         # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
 
