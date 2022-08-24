@@ -47,7 +47,6 @@ def plotUpdateOne(ln, sig, frequencies, rxfreq, lgSclBool):
         ln.set_ydata(np.log10(np.abs(sig)))
     else:
         ln.set_ydata(np.abs(sig)) # update the data on y axis
-    # plt.ylim(0, 1200)
     plt.gca().relim()
     plt.gca().autoscale_view()
     plt.pause(0.01)
@@ -209,9 +208,10 @@ def getSamples(device, stream, samplesPerScan, numOfRequestedSamples):
     for j in range(iterations):
         sr = device.readStream(stream, [samples[((j-1)*samplesPerScan):]], samplesPerScan)
         # time.sleep(0.005)
+
     # normalize the sample values
     samples = normArr(samples)
-    return device, stream, samples
+    return samples
 
 # print the main menu for our spectrum analyzer
 def printMenu():
@@ -302,7 +302,7 @@ if __name__ == '__main__':
         dftOld = dft
 
         # get the samples into the buffer and normalize
-        sdr, rxStream, samples = getSamples(sdr, rxStream, samplesPerRead, samplesPerIteration)
+        samples = getSamples(sdr, rxStream, samplesPerRead, samplesPerIteration)
 
         # print(sr.ret)  # num samples or error code
         # print(sr.flags)  # flags set by receive operation
@@ -311,12 +311,6 @@ if __name__ == '__main__':
         # Perform dft on the received samples and normalize
         dft = fastnumpyfft.fftshift(fastnumpyfft.fft(samples, samplesPerIteration))
         dft = normArr(dft)
-
-        if changeSampleRateBool:
-            freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(samplesPerIteration, d=1 / samp_rate))
-            # plotUpdateOne(line, signal, freqs, rx_freq, logScaleBool)
-            changeSampleRateBool = False
-
 
         dftMovingAverage = dft
         signal = dft
@@ -333,18 +327,20 @@ if __name__ == '__main__':
         if movingAverageBool:
             dftMovingAverage = movingAverageFunc(dftOld, dft, samplesPerIteration, movingAverageRatio)
 
-
+        if changeSampleRateBool:
+            freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(samplesPerIteration, d=1 / samp_rate))
+            changeSampleRateBool = False
 
         signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold, dftMovingAverage)
 
         # update the plot - one way
         plotUpdateOne(line, signal, freqs, rx_freq, logScaleBool)
-
         # # update the plot - second way
         # plotUpdateTwo(fig, line, bg, signal, freqs, rx_freq, ax, logScaleBool)
 
         # print out the maximum value in the spectrum analyzer
         # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
+        
         rx_freq, samp_rate, sdr, movingAverageRatio, \
         changeSampleRateBool, clearPlotBool, maxHoldBool, movingAverageBool, runBool, logScaleBool, sneakLOBool = \
             kbUsrChoice(sdr, rx_freq, samp_rate, movingAverageRatio, maxHoldBool, movingAverageBool, sneakLOBool,
