@@ -89,7 +89,7 @@ def movingAverageFunc(oldDFT, currentDFT, buffer_length, ratio):
     start_index_old_fft = buffer_length - int(buffer_length * ratio)
     # end index in the array of the new dft
     end_index_new_fft = int(buffer_length * ratio)
-    # Average of 2 arrays of samples (with same buff_len length)
+    # Average of 2 arrays of samples (with same samplesPerIteration length)
     currentDFT[:end_index_new_fft] = 0.5 * (oldDFT[start_index_old_fft:] + currentDFT[:end_index_new_fft])
     return currentDFT
 
@@ -111,12 +111,18 @@ def normArr(arr):
     return arr
 
 
-def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rnBool, lgSclBool, snkLoBool):
+def kbUsrChoice(mySDR, myRXFreq, myRXSampleRate, mvgAvgRt,
+                mxHldBool, mvgAvgBool, snkLoBool, lgSclBool, chngSmpRtBool, clrPltBool, rnBool):
     if keyboard.is_pressed("1"):
-        myRxFreq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
-        mySDR.setFrequency(SOAPY_SDR_RX, 0, myRxFreq)
+        myRXSampleRate = int(float(input("\nEnter desired sample rate (in MHz): ")) * 1e6)
+        mySDR.setSampleRate(SOAPY_SDR_RX, 0, myRXSampleRate)
+        chngSmpRtBool = True
         clrPltBool = True
-    elif keyboard.is_pressed("2"):
+    if keyboard.is_pressed("2"):
+        myRXFreq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
+        mySDR.setFrequency(SOAPY_SDR_RX, 0, myRXFreq)
+        clrPltBool = True
+    elif keyboard.is_pressed("3"):
         if mxHldBool:
             print("\nMax Hold disabled")
             mxHldBool = False
@@ -125,7 +131,7 @@ def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rn
             print("\nMax Hold enabled")
             mxHldBool = True
         time.sleep(cancelRePrintSleepTime)
-    elif keyboard.is_pressed("3"):
+    elif keyboard.is_pressed("4"):
         if mvgAvgBool:
             print("\nMoving Average disabled")
             mvgAvgBool = False
@@ -133,9 +139,9 @@ def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rn
             print("\nMoving Average enabled")
             mvgAvgBool = True
         time.sleep(cancelRePrintSleepTime)
-    elif keyboard.is_pressed("4"):
-        mvgAvgRt = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
     elif keyboard.is_pressed("5"):
+        mvgAvgRt = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
+    elif keyboard.is_pressed("6"):
         if snkLoBool:
             print("\nSneak from LO mode disabled (not yet implemented)")
             snkLoBool = False
@@ -143,7 +149,7 @@ def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rn
             print("\nSneak from LO mode enabled (not yet implemented)")
             snkLoBool = True
         time.sleep(cancelRePrintSleepTime)
-    elif keyboard.is_pressed("6"):
+    elif keyboard.is_pressed("7"):
         if logScaleBool:
             print("\nLog scale plot disabled")
             lgSclBool = False
@@ -153,17 +159,19 @@ def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rn
             lgSclBool = True
             clrPltBool = True
         time.sleep(cancelRePrintSleepTime)
-    elif keyboard.is_pressed("7"):
+    elif keyboard.is_pressed("8"):
         print("\nClearing plot...")
         clrPltBool = True
         time.sleep(cancelRePrintSleepTime)
-    elif keyboard.is_pressed("8"):
+    elif keyboard.is_pressed("9"):
         print(printMenu.__doc__)
         time.sleep(cancelRePrintSleepTime)
-    elif keyboard.is_pressed("9"):
+    elif keyboard.is_pressed("0"):
         print("\nYou chose to quit, ending loop")
         rnBool = False
-    return myRxFreq, mySDR, clrPltBool, mxHldBool, mvgAvgBool, mvgAvgRt, rnBool, lgSclBool, snkLoBool
+    return myRXFreq, myRXSampleRate, mySDR, mvgAvgRt,\
+           chngSmpRtBool, clrPltBool, mxHldBool, mvgAvgBool, rnBool, lgSclBool, snkLoBool
+
 
 
 def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT):
@@ -208,15 +216,16 @@ def getSamples(device, stream, samplesPerScan, numOfRequestedSamples):
 # print the main menu for our spectrum analyzer
 def printMenu():
     '''Choose one from the options:
-    1 - Change RX frequency
-    2 - Enable/Disable max hold
-    3 - Enable/Disable moving average
-    4 - Change moving average ratio
-    5 - Sneak from LO mode
-    6 - Change plot to dB scale
-    7 - Clear plot
-    8 - Print menu again
-    9 - Quit'''
+    1 - Change sample rate
+    2 - Change RX frequency
+    3 - Enable/Disable max hold
+    4 - Enable/Disable moving average
+    5 - Change moving average ratio
+    6 - Sneak from LO mode
+    7 - Change plot to dB scale
+    8 - Clear plot
+    9 - Print menu again
+    0 - Quit'''
 
 
 if __name__ == '__main__':
@@ -240,7 +249,7 @@ if __name__ == '__main__':
     bandwidth = configfile.BANDWIDTH
     samp_rate = configfile.SAMPLE_RATE
     rx_freq = configfile.RX_FREQ
-    buff_len = configfile.BUFFER_LENGTH
+    samplesPerIteration = configfile.SAMPLES_PER_ITERATION
     samplesPerRead = configfile.SAMPLES_PER_READ
     RX_gain = configfile.RX_GAIN
     movingAverageRatio = configfile.MOVING_AVERAGE_RATIO
@@ -251,6 +260,7 @@ if __name__ == '__main__':
     movingAverageBool = configfile.BOOL_MOOVING_AVERAGE
     logScaleBool = configfile.BOOL_LOG_SCALE
     sneakLOBool = configfile.BOOL_SNEAK_FROM_LO
+    changeSampleRateBool = configfile.BOOL_CHANGE_SAMPLE_RATE
 
     #in keyboard is_pressed it re-prints if the function won't sleep
     cancelRePrintSleepTime = configfile.CANCEL_REPRINT_SLEEP_TIME
@@ -260,8 +270,8 @@ if __name__ == '__main__':
     # setup a stream
     rxStream = setStream(sdr)
 
-    # create the frequency vector, it depends on buff_len and samp_rate
-    freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(buff_len, d=1/samp_rate))
+    # create the frequency vector, it depends on samplesPerIteration and samp_rate
+    freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(samplesPerIteration, d=1/samp_rate))
 
     # initiate the plot
 
@@ -283,8 +293,8 @@ if __name__ == '__main__':
     # print menu
     print(printMenu.__doc__)
 
-    dft = np.zeros(buff_len)
-    dftMaxHold = np.zeros(buff_len)
+    dft = np.zeros(samplesPerIteration)
+    dftMaxHold = np.zeros(samplesPerIteration)
 
     # receive samples
     while runBool:
@@ -292,15 +302,20 @@ if __name__ == '__main__':
         dftOld = dft
 
         # get the samples into the buffer and normalize
-        sdr, rxStream, samples = getSamples(sdr, rxStream, samplesPerRead, buff_len)
+        sdr, rxStream, samples = getSamples(sdr, rxStream, samplesPerRead, samplesPerIteration)
 
         # print(sr.ret)  # num samples or error code
         # print(sr.flags)  # flags set by receive operation
         # print(sr.timeNs)  # timestamp for receive buffer
 
-        # Perform dft on the samples and normalize
-        dft = fastnumpyfft.fftshift(fastnumpyfft.fft(samples, buff_len))
+        # Perform dft on the received samples and normalize
+        dft = fastnumpyfft.fftshift(fastnumpyfft.fft(samples, samplesPerIteration))
         dft = normArr(dft)
+
+        if changeSampleRateBool:
+            freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(samplesPerIteration, d=1 / samp_rate))
+            # plotUpdateOne(line, signal, freqs, rx_freq, logScaleBool)
+            changeSampleRateBool = False
 
 
         dftMovingAverage = dft
@@ -316,7 +331,9 @@ if __name__ == '__main__':
 
         # Applying Moving Average Function
         if movingAverageBool:
-            dftMovingAverage = movingAverageFunc(dftOld, dft, buff_len, movingAverageRatio)
+            dftMovingAverage = movingAverageFunc(dftOld, dft, samplesPerIteration, movingAverageRatio)
+
+
 
         signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold, dftMovingAverage)
 
@@ -328,10 +345,11 @@ if __name__ == '__main__':
 
         # print out the maximum value in the spectrum analyzer
         # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
+        rx_freq, samp_rate, sdr, movingAverageRatio, \
+        changeSampleRateBool, clearPlotBool, maxHoldBool, movingAverageBool, runBool, logScaleBool, sneakLOBool = \
+            kbUsrChoice(sdr, rx_freq, samp_rate, movingAverageRatio, maxHoldBool, movingAverageBool, sneakLOBool,
+                        logScaleBool, changeSampleRateBool, clearPlotBool, runBool)
 
-        rx_freq, sdr, clearPlotBool, maxHoldBool, movingAverageBool, movingAverageRatio, runBool, logScaleBool, sneakLOBool = \
-            kbUsrChoice(sdr, maxHoldBool, movingAverageBool, rx_freq,
-                        clearPlotBool, movingAverageBool, runBool, logScaleBool, sneakLOBool)
 
     # shutdown the stream
     quitStream(sdr, rxStream)
