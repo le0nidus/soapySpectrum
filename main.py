@@ -105,6 +105,12 @@ def clearPlotFunc(newSamps):
     return mxHldDFT, mvgAvgDFT, clrPltBool
 
 
+def normArr(arr):
+    if np.max(np.abs(arr)) != 0:
+        arr = arr / np.max(np.abs(arr))
+    return arr
+
+
 def kbUsrChoice(mySDR, mxHldBool, mvgAvgBool, myRxFreq, clrPltBool, mvgAvgRt, rnBool, lgSclBool, snkLoBool):
     if keyboard.is_pressed("1"):
         myRxFreq = int(float(input("\nEnter desired frequency (in MHz): ")) * 1e6)
@@ -188,6 +194,17 @@ def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT)
 def sneakFromLOFunc(dft):
     return dft
 
+
+def getSamples(device, stream, samplesPerScan, numOfRequestedSamples):
+    samples = np.zeros(numOfRequestedSamples, dtype=np.complex64)
+    iterations = int(numOfRequestedSamples / samplesPerScan)
+    for j in range(iterations):
+        sr = device.readStream(stream, [samples[((j-1)*samplesPerScan):]], samplesPerScan)
+        # time.sleep(0.005)
+    # normalize the sample values
+    samples = normArr(samples)
+    return device, stream, samples
+
 # print the main menu for our spectrum analyzer
 def printMenu():
     '''Choose one from the options:
@@ -224,6 +241,7 @@ if __name__ == '__main__':
     samp_rate = configfile.SAMPLE_RATE
     rx_freq = configfile.RX_FREQ
     buff_len = configfile.BUFFER_LENGTH
+    samplesPerRead = configfile.SAMPLES_PER_READ
     RX_gain = configfile.RX_GAIN
     movingAverageRatio = configfile.MOVING_AVERAGE_RATIO
 
@@ -241,9 +259,6 @@ if __name__ == '__main__':
 
     # setup a stream
     rxStream = setStream(sdr)
-
-    # create a re-usable buffer for rx samples
-    buff = np.zeros(buff_len, dtype=np.complex64)
 
     # create the frequency vector, it depends on buff_len and samp_rate
     freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(buff_len, d=1/samp_rate))
@@ -276,19 +291,18 @@ if __name__ == '__main__':
         # save old dft samples for later use
         dftOld = dft
 
-        # get the samples into the buffer
-        sr = sdr.readStream(rxStream, [buff], len(buff))
-
-        # normalize the values
-        if np.max(np.abs(buff)) != 0:
-            buff = buff / np.max(np.abs(buff))
+        # get the samples into the buffer and normalize
+        sdr, rxStream, samples = getSamples(sdr, rxStream, samplesPerRead, buff_len)
 
         # print(sr.ret)  # num samples or error code
         # print(sr.flags)  # flags set by receive operation
         # print(sr.timeNs)  # timestamp for receive buffer
 
-        # Perform dft on the samples
-        dft = fastnumpyfft.fftshift(fastnumpyfft.fft(buff, buff_len))
+        # Perform dft on the samples and normalize
+        dft = fastnumpyfft.fftshift(fastnumpyfft.fft(samples, buff_len))
+        dft = normArr(dft)
+
+
         dftMovingAverage = dft
         signal = dft
 
