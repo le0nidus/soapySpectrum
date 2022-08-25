@@ -104,12 +104,14 @@ def clearPlotFunc(newSamps):
     return mxHldDFT, mvgAvgDFT, clrPltBool
 
 
+# Normalize values in given array to be in range [-1,1]
 def normArr(arr):
     if np.max(np.abs(arr)) != 0:
         arr = arr / np.max(np.abs(arr))
     return arr
 
 
+# Change bool state and clear plot
 def changeBoolState(optionStr, iBool, clrPltBool):
     if iBool:
         print("\n" + optionStr + " disabled")
@@ -121,6 +123,7 @@ def changeBoolState(optionStr, iBool, clrPltBool):
     return iBool, clrPltBool
 
 
+# Keyboard choice (menu choices)
 def kbUsrChoice(mySDR, myRXFreq, myRXSampleRate, mvgAvgRt,
                 mxHldBool, mvgAvgBool, snkLoBool, lgSclBool, chngSmpRtBool, clrPltBool, rnBool):
     if keyboard.is_pressed("1"):
@@ -144,7 +147,7 @@ def kbUsrChoice(mySDR, myRXFreq, myRXSampleRate, mvgAvgRt,
         snkLoBool, clrPltBool = changeBoolState("Sneak from LO mode (not yet implemented)", snkLoBool, clrPltBool)
         time.sleep(cancelRePrintSleepTime)
     elif keyboard.is_pressed("7"):
-        logScaleBool, clrPltBool = changeBoolState("Log scale plot", logScaleBool, clrPltBool)
+        lgSclBool, clrPltBool = changeBoolState("Log scale plot", lgSclBool, clrPltBool)
         time.sleep(cancelRePrintSleepTime)
     elif keyboard.is_pressed("8"):
         print("\nClearing plot...")
@@ -160,7 +163,7 @@ def kbUsrChoice(mySDR, myRXFreq, myRXSampleRate, mvgAvgRt,
            chngSmpRtBool, clrPltBool, mxHldBool, mvgAvgBool, rnBool, lgSclBool, snkLoBool
 
 
-
+# According to given user choices, show an appropriate signal
 def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT):
     '''According to user choice, if he chose
     Moving Average / Max Hold / Both
@@ -186,20 +189,24 @@ def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT)
     return sig, mxHldDFT
 
 
+# Not yet implemented
 def sneakFromLOFunc(dft):
     return dft
 
 
+# Get samples from sdr, but in a loop (read small number of samples every time)
 def getSamples(device, stream, samplesPerScan, numOfRequestedSamples):
     samples = np.zeros(numOfRequestedSamples, dtype=np.complex64)
     iterations = int(numOfRequestedSamples / samplesPerScan)
     for j in range(iterations):
         sr = device.readStream(stream, [samples[((j-1)*samplesPerScan):]], samplesPerScan)
-        # time.sleep(0.005)
-
+        # print(sr.ret)  # num samples or error code
+        # print(sr.flags)  # flags set by receive operation
+        # print(sr.timeNs)  # timestamp for receive buffer
     # normalize the sample values
     samples = normArr(samples)
     return samples
+
 
 # print the main menu for our spectrum analyzer
 def printMenu():
@@ -221,6 +228,7 @@ if __name__ == '__main__':
 
     # show soapySDR devices available
     results = SoapySDR.Device.enumerate()
+    print("Available devices:")
     for result in results: print(result)
 
     # create device instance
@@ -228,11 +236,6 @@ if __name__ == '__main__':
     args = dict(driver="hackrf")
     sdr = SoapySDR.Device(args)
 
-    # query device info
-    print(sdr.listAntennas(SOAPY_SDR_RX, 0))
-    print(sdr.listGains(SOAPY_SDR_RX, 0))
-    # freqs = sdr.getFrequencyRange(SOAPY_SDR_RX, 0)
-    # for freqRange in freqs: print(freqRange)
 
     bandwidth = configfile.BANDWIDTH
     samp_rate = configfile.SAMPLE_RATE
@@ -292,10 +295,6 @@ if __name__ == '__main__':
         # get the samples into the buffer and normalize
         samples = getSamples(sdr, rxStream, samplesPerRead, samplesPerIteration)
 
-        # print(sr.ret)  # num samples or error code
-        # print(sr.flags)  # flags set by receive operation
-        # print(sr.timeNs)  # timestamp for receive buffer
-
         # Perform dft on the received samples and normalize
         dft = fastnumpyfft.fftshift(fastnumpyfft.fft(samples, samplesPerIteration))
         dft = normArr(dft)
@@ -315,6 +314,7 @@ if __name__ == '__main__':
         if movingAverageBool:
             dftMovingAverage = movingAverageFunc(dftOld, dft, samplesPerIteration, movingAverageRatio)
 
+        # if the user changed the sample rate
         if changeSampleRateBool:
             freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(samplesPerIteration, d=1 / samp_rate))
             changeSampleRateBool = False
