@@ -110,6 +110,17 @@ def normArr(arr):
     return arr
 
 
+def changeBoolState(optionStr, iBool, clrPltBool):
+    if iBool:
+        print("\n" + optionStr + " disabled")
+        iBool = False
+        clrPltBool = True
+    else:
+        print("\n" + optionStr + " enabled")
+        iBool = True
+    return iBool, clrPltBool
+
+
 def kbUsrChoice(mySDR, myRXFreq, myRXSampleRate, mvgAvgRt,
                 mxHldBool, mvgAvgBool, snkLoBool, lgSclBool, chngSmpRtBool, clrPltBool, rnBool):
     if keyboard.is_pressed("1"):
@@ -122,41 +133,18 @@ def kbUsrChoice(mySDR, myRXFreq, myRXSampleRate, mvgAvgRt,
         mySDR.setFrequency(SOAPY_SDR_RX, 0, myRXFreq)
         clrPltBool = True
     elif keyboard.is_pressed("3"):
-        if mxHldBool:
-            print("\nMax Hold disabled")
-            mxHldBool = False
-            clrPltBool = True
-        else:
-            print("\nMax Hold enabled")
-            mxHldBool = True
+        mxHldBool, clrPltBool = changeBoolState("Max hold", mxHldBool, clrPltBool)
         time.sleep(cancelRePrintSleepTime)
     elif keyboard.is_pressed("4"):
-        if mvgAvgBool:
-            print("\nMoving Average disabled")
-            mvgAvgBool = False
-        else:
-            print("\nMoving Average enabled")
-            mvgAvgBool = True
+        mvgAvgBool, clrPltBool = changeBoolState("Moving average", mvgAvgBool, clrPltBool)
         time.sleep(cancelRePrintSleepTime)
     elif keyboard.is_pressed("5"):
         mvgAvgRt = float(input("\nEnter desired moving average ratio (in divisions of 2): "))
     elif keyboard.is_pressed("6"):
-        if snkLoBool:
-            print("\nSneak from LO mode disabled (not yet implemented)")
-            snkLoBool = False
-        else:
-            print("\nSneak from LO mode enabled (not yet implemented)")
-            snkLoBool = True
+        snkLoBool, clrPltBool = changeBoolState("Sneak from LO mode (not yet implemented)", snkLoBool, clrPltBool)
         time.sleep(cancelRePrintSleepTime)
     elif keyboard.is_pressed("7"):
-        if logScaleBool:
-            print("\nLog scale plot disabled")
-            lgSclBool = False
-            clrPltBool = True
-        else:
-            print("\nLog scale plot enabled")
-            lgSclBool = True
-            clrPltBool = True
+        logScaleBool, clrPltBool = changeBoolState("Log scale plot", logScaleBool, clrPltBool)
         time.sleep(cancelRePrintSleepTime)
     elif keyboard.is_pressed("8"):
         print("\nClearing plot...")
@@ -340,7 +328,7 @@ if __name__ == '__main__':
 
         # print out the maximum value in the spectrum analyzer
         # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
-        
+
         rx_freq, samp_rate, sdr, movingAverageRatio, \
         changeSampleRateBool, clearPlotBool, maxHoldBool, movingAverageBool, runBool, logScaleBool, sneakLOBool = \
             kbUsrChoice(sdr, rx_freq, samp_rate, movingAverageRatio, maxHoldBool, movingAverageBool, sneakLOBool,
