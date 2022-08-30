@@ -1,6 +1,6 @@
 # SoapySDR is the API for the hackrf
 import SoapySDR
-from SoapySDR import Device, SOAPY_SDR_RX, SOAPY_SDR_CF32, SOAPY_SDR_CS16, SOAPY_SDR_CU16
+from SoapySDR import Device, SOAPY_SDR_RX, SOAPY_SDR_CF32
 # Using pyfftw instead of numpy to calculate fft faster
 from pyfftw import interfaces
 from pyfftw.interfaces import numpy_fft as fastnumpyfft
@@ -71,7 +71,6 @@ def plotUpdateTwo(ifig, ln, ibg, sig, frequencies, rxfreq, iax, lgSclBool):
 # setup a stream (complex floats)
 def setStream(sdrDevice):
     stream = sdrDevice.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
-    # stream = sdrDevice.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CS16)
     print(sdr.getStreamMTU(stream))
     sdrDevice.activateStream(stream)  # start streaming
     return stream
@@ -198,14 +197,11 @@ def sneakFromLOFunc(dft):
 # Get samples from sdr, but in a loop (read small number of samples every time)
 def getSamples(device, stream, samplesPerScan, numOfRequestedSamples):
     samples = np.zeros(numOfRequestedSamples, dtype=np.complex64)
-    # samples = np.zeros(numOfRequestedSamples, dtype=np.dtype('c8'))
     iterations = int(numOfRequestedSamples / samplesPerScan)
     for j in range(iterations):
         sr = device.readStream(stream, [samples[((j-1)*samplesPerScan):]], samplesPerScan)
-        # print(sr.ret)  # num samples or error code
-        # print(sr.flags)  # flags set by receive operation
-        # print(sr.timeNs)  # timestamp for receive buffer
     # normalize the sample values
+    # sr = device.readStream(stream, [samples], numOfRequestedSamples)
     samples = normArr(samples)
     return samples
 
