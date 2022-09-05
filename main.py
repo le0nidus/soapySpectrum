@@ -194,6 +194,63 @@ def getSamples(device, stream, samplesPerScan, numOfRequestedSamples):
     return samples
 
 
+def mainWhileLoop(numSamplesPerDFT, numSamplesPerSingleRead, mySDR, sampleRate, frequencyVector, rx_freq, rxStream, movingAverageRatio,
+                  runBool, clearPlotBool, sneakLOBool, movingAverageBool, changeSampleRateBool, logScaleBool,
+                  maxHoldBool, line):
+    dft = np.zeros(numSamplesPerDFT)
+    dftOld = np.zeros(numSamplesPerDFT)
+    dftMaxHold = np.zeros(numSamplesPerDFT)
+    dftMovingAverage = np.zeros(numSamplesPerDFT)
+    signal = np.zeros(numSamplesPerDFT)
+    # receive samples
+    while runBool:
+        # save old dft samples for later use
+        dftOld = dft
+
+        # get the samples into the buffer and normalize
+        samples = getSamples(mySDR, rxStream, numSamplesPerSingleRead, numSamplesPerDFT)
+
+        # Perform dft on the received samples and normalize
+        dft = fastnumpyfft.fftshift(fastnumpyfft.fft(samples, numSamplesPerDFT))
+        dft = normArr(dft)
+
+        dftMovingAverage = dft
+        signal = dft
+
+        # If the user wants to clear the plot
+        if clearPlotBool:
+            dftMaxHold, dftMovingAverage, clearPlotBool = clearPlotFunc(dft)
+
+        # If the user wants to sneak from LO
+        if sneakLOBool:
+            dftSneakedSig = sneakFromLOFunc(dft)
+
+        # Applying Moving Average Function
+        if movingAverageBool:
+            dftMovingAverage = movingAverageFunc(dftOld, dft, numSamplesPerDFT, movingAverageRatio)
+
+        # if the user changed the sample rate
+        if changeSampleRateBool:
+            frequencyVector = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(numSamplesPerDFT, d=1 / sampleRate))
+            changeSampleRateBool = False
+
+        signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold, dftMovingAverage)
+
+        # update the plot - one way
+        plotUpdateOne(line, signal, frequencyVector, rx_freq, logScaleBool)
+        # # update the plot - second way
+        # plotUpdateTwo(fig, line, bg, signal, frequencyVector, rx_freq, ax, logScaleBool)
+
+        # print out the maximum value in the spectrum analyzer
+        # print("Maximum received in: " + str((frequencyVector[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
+
+        rx_freq, sampleRate, mySDR, movingAverageRatio, \
+        changeSampleRateBool, clearPlotBool, maxHoldBool, movingAverageBool, runBool, logScaleBool, sneakLOBool = \
+            kbUsrChoice(mySDR, rx_freq, sampleRate, movingAverageRatio, maxHoldBool, movingAverageBool, sneakLOBool,
+                        logScaleBool, changeSampleRateBool, clearPlotBool, runBool)
+    return
+
+
 # print the main menu for our spectrum analyzer
 def printMenu():
     '''Choose one from the options:
@@ -272,55 +329,9 @@ if __name__ == '__main__':
     # print menu
     print(printMenu.__doc__)
 
-    dft = np.zeros(samplesPerIteration)
-    dftMaxHold = np.zeros(samplesPerIteration)
-
-    # receive samples
-    while runBool:
-        # save old dft samples for later use
-        dftOld = dft
-
-        # get the samples into the buffer and normalize
-        samples = getSamples(sdr, rxStream, samplesPerRead, samplesPerIteration)
-
-        # Perform dft on the received samples and normalize
-        dft = fastnumpyfft.fftshift(fastnumpyfft.fft(samples, samplesPerIteration))
-        dft = normArr(dft)
-
-        dftMovingAverage = dft
-        signal = dft
-
-        # If the user wants to clear the plot
-        if clearPlotBool:
-            dftMaxHold, dftMovingAverage, clearPlotBool = clearPlotFunc(dft)
-
-        # If the user wants to sneak from LO
-        if sneakLOBool:
-            dftSneakedSig = sneakFromLOFunc(dft)
-
-        # Applying Moving Average Function
-        if movingAverageBool:
-            dftMovingAverage = movingAverageFunc(dftOld, dft, samplesPerIteration, movingAverageRatio)
-
-        # if the user changed the sample rate
-        if changeSampleRateBool:
-            freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(samplesPerIteration, d=1 / samp_rate))
-            changeSampleRateBool = False
-
-        signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold, dftMovingAverage)
-
-        # update the plot - one way
-        plotUpdateOne(line, signal, freqs, rx_freq, logScaleBool)
-        # # update the plot - second way
-        # plotUpdateTwo(fig, line, bg, signal, freqs, rx_freq, ax, logScaleBool)
-
-        # print out the maximum value in the spectrum analyzer
-        # print("Maximum received in: " + str((freqs[np.argmax(np.abs(signal))] + rx_freq) / 1e6) + " MHz")
-
-        rx_freq, samp_rate, sdr, movingAverageRatio, \
-        changeSampleRateBool, clearPlotBool, maxHoldBool, movingAverageBool, runBool, logScaleBool, sneakLOBool = \
-            kbUsrChoice(sdr, rx_freq, samp_rate, movingAverageRatio, maxHoldBool, movingAverageBool, sneakLOBool,
-                        logScaleBool, changeSampleRateBool, clearPlotBool, runBool)
+    mainWhileLoop(samplesPerIteration, samplesPerRead, sdr, samp_rate, freqs, rx_freq, rxStream, movingAverageRatio,
+                  runBool, clearPlotBool, sneakLOBool, movingAverageBool, changeSampleRateBool, logScaleBool,
+                  maxHoldBool, line)
 
 
     # shutdown the stream
