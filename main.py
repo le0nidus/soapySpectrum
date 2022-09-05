@@ -20,18 +20,6 @@ import time
 import configfile
 
 
-def window():
-    app = QApplication(sys.argv)
-    win = QMainWindow()
-    win.setGeometry(200, 200, 300, 300)
-    win.setWindowTitle("soapySpectrum Menu")
-    label = QtWidgets.QLabel(win)
-    label.setText("myLabel")
-    label.move(50, 50)
-    win.show()
-    app.exec_()
-
-
 # apply initial settings to HackRF device
 def initializeHackRF(fs, f_rx, bw, gain):
     sdr.setSampleRate(SOAPY_SDR_RX, 0, fs)
