@@ -7,10 +7,8 @@ from matplotlib import rc
 
 from UI.ui_Main import *
 import mainFunc
-# import ctypes
-#
-# myappid = 'mycompany.myproduct.subproduct.version'
-# ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+import os, ctypes
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -75,6 +73,12 @@ class ExitMessageBox(QMessageBox):
         grid_layout.addWidget(qt_msgbox_buttonbox, 1, 0, alignment=Qt.AlignCenter)
 
 if __name__ == "__main__":
+    # code for setting taskbar icon in windows
+    myappid = 'liran.soapySpectrum.2'
+    if os.name == 'nt':
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
     app = QApplication(sys.argv)
     window = MainWindow()
     sys.exit(app.exec_())
+    
