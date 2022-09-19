@@ -20,6 +20,7 @@ class MainWindow(QMainWindow):
         self.running = True
         self.ui = Ui_SoapySpectrum()
         self.ui.setupUi(self)
+        self.center()
         self.show()
         mainFunc.mainGUI(self)
 
@@ -48,6 +49,12 @@ class MainWindow(QMainWindow):
             event.accept()
         else:
             event.ignore()
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
         
     def insert_ax(self):
         font = {
@@ -66,7 +73,7 @@ class ExitMessageBox(QMessageBox):
         qt_msgbox_buttonbox = self.findChild(QDialogButtonBox, "qt_msgbox_buttonbox")
         grid_layout.addWidget(qt_msgbox_label, 0, 0, alignment=Qt.AlignCenter)
         grid_layout.addWidget(qt_msgbox_buttonbox, 1, 0, alignment=Qt.AlignCenter)
-        
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
