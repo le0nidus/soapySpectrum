@@ -1,7 +1,25 @@
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
-from PySide2.QtCharts import *
+# SoapySDR is the API for the hackrf
+import SoapySDR
+from SoapySDR import Device, SOAPY_SDR_RX, SOAPY_SDR_CF32
+# Using pyfftw instead of numpy to calculate fft faster
+from pyfftw import interfaces
+from pyfftw.interfaces import numpy_fft as fastnumpyfft
+# use numpy for buffers
+import numpy as np
+# use pyplot for plotting
+from matplotlib import pyplot as plt
+# use PyQt5 for GUI
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QApplication, QMainWindow
+import sys
+# use keyboard for getting menu choices from the user
+import keyboard
+# use time for creating delays (remove re-prints)
+import time
+# use the defaults from variable file
+# import configfile
+
+
 from threading import Thread
 import time
 
@@ -31,6 +49,12 @@ def loop(self):
         time.sleep(0.1)
 
 
+def initializeHackRF(isdr, fs, f_rx, bw, gain):
+    isdr.setSampleRate(SOAPY_SDR_RX, 0, fs)
+    isdr.setBandwidth(SOAPY_SDR_RX, 0, bw)
+    isdr.setFrequency(SOAPY_SDR_RX, 0, f_rx)
+    isdr.setGain(SOAPY_SDR_RX, 0, gain)
+
 ''' 
 The main function. Here all the variables are setting when button clicks
 '''
@@ -38,12 +62,21 @@ def mainGUI(self):
     self.ui.btnStart.clicked.connect(lambda: updateSettings())
     self.ui.btnClear.clicked.connect(lambda: clearPlot())
     self.threadSM = Thread(target=loop, args=(self,))
+    # show soapySDR devices available
+    results = SoapySDR.Device.enumerate()
+    print("Available devices:")
+    for result in results: print(result)
+
+    # create device instance
+    # args can be user defined or from the enumeration result
+    args = dict(driver="hackrf")
+    sdr = SoapySDR.Device(args)
 
     def updateSettings():
         if self.ui.gain.text() != "":
             if (0 <= int(self.ui.gain.text()) <= 90):
-                rx_freq = float(self.ui.rxFreq.text())
-                samp_rate = float(self.ui.sampleRate.text())
+                rx_freq = float(self.ui.rxFreq.text()) * 1e6
+                samp_rate = float(self.ui.sampleRate.text()) * 1e6
                 gainRX = int(self.ui.gain.text())
                 bandwidthFilter = float(self.ui.bandwidthFilter.currentText())
                 movingAverageRatio = float(self.ui.avgRatio.currentText())
@@ -52,6 +85,8 @@ def mainGUI(self):
                 maxHoldBool = self.ui.chkMax.isChecked()
                 movingAverageBool = self.ui.chkAvg.isChecked()
                 logScaleBool = self.ui.chklog.isChecked()
+                initializeHackRF(sdr, samp_rate, rx_freq, bandwidthFilter, gainRX)
+
                 if not self.threadSM.is_alive():
                     self.threadSM.start()
             else:
