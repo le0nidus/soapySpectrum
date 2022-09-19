@@ -1,0 +1,6 @@
+Features to add:
+1. When user clicks "Update settings/start" it will expand the plot dynamically
+2. exit with tray icon
+3. recording spectrum and saving
+4. Dependet combo boxes
+5. Select Multi-Read or onetime read

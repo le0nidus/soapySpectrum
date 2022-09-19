@@ -29,8 +29,25 @@ class MainWindow(QMainWindow):
 
 
     def closeEvent(self, event):
-        self.running = False
+        dlg = ExitMessageBox()
+        dlg.setWindowTitle("Exit dialog")
+        dlg.setText("Are you sure you want to quit?<br>")
+        dlg.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+        appIcon = QIcon("icon.png")
+        dlg.setWindowIcon(appIcon)
+        button = dlg.exec()
 
+        if button == QMessageBox.Yes:
+            self.running = False
+            # @@@@@@@@@@@@@@@@@@@@@@ RELEASE SDR CODE @@@@@@@@@@@@@@@@@@@@@@
+            # @@@@@@@@@@@@@@@@@@@@@@                  @@@@@@@@@@@@@@@@@@@@@@
+            # @@@@@@@@@@@@@@@@@@@@@@                  @@@@@@@@@@@@@@@@@@@@@@
+            # @@@@@@@@@@@@@@@@@@@@@@                  @@@@@@@@@@@@@@@@@@@@@@
+            # @@@@@@@@@@@@@@@@@@@@@@                  @@@@@@@@@@@@@@@@@@@@@@
+            # @@@@@@@@@@@@@@@@@@@@@@ RELEASE SDR CODE @@@@@@@@@@@@@@@@@@@@@@
+            event.accept()
+        else:
+            event.ignore()
         
     def insert_ax(self):
         font = {
@@ -40,7 +57,16 @@ class MainWindow(QMainWindow):
         rc('font', **font)
         self.ax = self.canvas.figure.subplots()
 
-
+class ExitMessageBox(QMessageBox):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        grid_layout = self.layout()
+        qt_msgbox_label = self.findChild(QLabel, "qt_msgbox_label")
+        qt_msgbox_label.setAlignment(Qt.AlignCenter)
+        qt_msgbox_buttonbox = self.findChild(QDialogButtonBox, "qt_msgbox_buttonbox")
+        grid_layout.addWidget(qt_msgbox_label, 0, 0, alignment=Qt.AlignCenter)
+        grid_layout.addWidget(qt_msgbox_buttonbox, 1, 0, alignment=Qt.AlignCenter)
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
