@@ -156,6 +156,6 @@ def mainGUI(self):
 
     def clearPlot():
         clearPlotBool = True
-        self.ax.cla()
+
 
 
