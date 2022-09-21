@@ -36,14 +36,11 @@ def mainGUI(self):
 
     # If the user wants to clear the plot
     def clearPlot():
-        self.dftMaxHold, self.dftMovingAverage = functions.clearPlotFunc(self.dft)
+        if not np.argmax(np.abs(self.dft)) == 0:
+            self.dftMaxHold, self.dftMovingAverage = functions.clearPlotFunc(self.dft)
 
     # This is the Loop which running in Thread
     def loop(self):
-        self.dft = np.zeros(self.samplesPerIteration)
-        self.dftOld = np.zeros(self.samplesPerIteration)
-        self.dftMaxHold = np.zeros(self.samplesPerIteration)
-        self.dftMovingAverage = np.zeros(self.samplesPerIteration)
         while self.running:
             # save old dft samples for later use
             self.dftOld = self.dft
@@ -61,7 +58,6 @@ def mainGUI(self):
             # Applying Moving Average Function
             if self.movingAverageBool:
                 self.dftMovingAverage = functions.movingAverageFunc(self.dftOld, self.dft, self.samplesPerIteration, self.movingAverageRatio)
-
 
             sig, self.dftMaxHold = functions.assignAppropriateSignal(self.maxHoldBool, self.movingAverageBool, self.dft, self.dftMaxHold,
                                                          self.dftMovingAverage)
@@ -82,28 +78,32 @@ def mainGUI(self):
     # args can be user defined or from the enumeration result
     args = dict(driver="hackrf")
     self.sdr = SoapySDR.Device(args)
-
-
+    self.dft = np.zeros(4096)
+    self.dftOld = np.zeros(4096)
+    self.dftMaxHold = np.zeros(4096)
+    self.dftMovingAverage = np.zeros(4096)
+    self.maxHoldBool = False
+    self.rx_freq = 315*1e6
 
     def updateSettings():
         if self.ui.gain.text() != "":
             if (0 <= int(self.ui.gain.text()) <= 90):
-                self.rx_freq = float(self.ui.rxFreq.text()) * 1e6
-                self.samp_rate = float(self.ui.sampleRate.text()) * 1e6
-                self.gainRX = int(self.ui.gain.text())
-                self.bandwidthFilter = float(self.ui.bandwidthFilter.currentText())
-                self.movingAverageRatio = float(self.ui.avgRatio.currentText())
-                self.samplesPerRead = int(self.ui.perRead.currentText())
-                self.samplesPerIteration = int(self.ui.perIteration.currentText())
-                self.maxHoldBool = self.ui.chkMax.isChecked()
-                self.movingAverageBool = self.ui.chkAvg.isChecked()
-                self.logScaleBool = self.ui.chklog.isChecked()
-                self.freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(self.samplesPerIteration, d=1 / self.samp_rate))
-                functions.initializeHackRF(self.sdr, self.samp_rate, self.rx_freq, self.bandwidthFilter, self.gainRX)
-
-                if not self.threadSM.is_alive():
-                    self.stream = functions.setStream(self.sdr)
-                    self.threadSM.start()
+                if not (self.ui.chkMax.isChecked() & (not self.maxHoldBool) & (self.rx_freq != float(self.ui.rxFreq.text()) * 1e6)):
+                    self.rx_freq = float(self.ui.rxFreq.text()) * 1e6
+                    self.samp_rate = float(self.ui.sampleRate.text()) * 1e6
+                    self.gainRX = int(self.ui.gain.text())
+                    self.bandwidthFilter = float(self.ui.bandwidthFilter.currentText())
+                    self.movingAverageRatio = float(self.ui.avgRatio.currentText())
+                    self.samplesPerRead = int(self.ui.perRead.currentText())
+                    self.samplesPerIteration = int(self.ui.perIteration.currentText())
+                    self.maxHoldBool = self.ui.chkMax.isChecked()
+                    self.movingAverageBool = self.ui.chkAvg.isChecked()
+                    self.logScaleBool = self.ui.chklog.isChecked()
+                    self.freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(self.samplesPerIteration, d=1 / self.samp_rate))
+                    functions.initializeHackRF(self.sdr, self.samp_rate, self.rx_freq, self.bandwidthFilter, self.gainRX)
+                    if not self.threadSM.is_alive():
+                        self.stream = functions.setStream(self.sdr)
+                        self.threadSM.start()
 
             else:
                 print("rxgain bigger than 90 or smaller than 0")
