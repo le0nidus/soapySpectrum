@@ -30,23 +30,9 @@ Update Chart function. You can draw chart changing this function
 '''
 
 
-def update_chart(self):
-    # Here is an example
-    global i
-    i += 1
-    self.ax.plot([0, 1, 2, 3, 4], [10, 1, 20, i, 40])
-    self.canvas.draw()
 
 
-''' 
-This is the Loop which running in Thread
-'''
 
-
-def loop(self):
-    while self.running:
-        update_chart(self)
-        time.sleep(0.1)
 
 
 def initializeHackRF(isdr, fs, f_rx, bw, gain):
@@ -55,10 +41,23 @@ def initializeHackRF(isdr, fs, f_rx, bw, gain):
     isdr.setFrequency(SOAPY_SDR_RX, 0, f_rx)
     isdr.setGain(SOAPY_SDR_RX, 0, gain)
 
-''' 
-The main function. Here all the variables are setting when button clicks
-'''
+
+# The main function. Here all the variables are setting when button clicks
 def mainGUI(self):
+    def update_chart(self):
+        # Here is an example
+        num = self.gainRX
+        global i
+        i += 1
+        self.ax.plot([0 + num, 1 + num, 2 + num, 3 + num, 4 + num], [10, 1, 20, i, 40])
+        self.canvas.draw()
+
+    # This is the Loop which running in Thread
+    def loop(self):
+        while self.running:
+            update_chart(self)
+            time.sleep(0.1)
+
     self.ui.btnStart.clicked.connect(lambda: updateSettings())
     self.ui.btnClear.clicked.connect(lambda: clearPlot())
     self.threadSM = Thread(target=loop, args=(self,))
@@ -72,20 +71,22 @@ def mainGUI(self):
     args = dict(driver="hackrf")
     sdr = SoapySDR.Device(args)
 
+
+
     def updateSettings():
         if self.ui.gain.text() != "":
             if (0 <= int(self.ui.gain.text()) <= 90):
-                rx_freq = float(self.ui.rxFreq.text()) * 1e6
-                samp_rate = float(self.ui.sampleRate.text()) * 1e6
-                gainRX = int(self.ui.gain.text())
-                bandwidthFilter = float(self.ui.bandwidthFilter.currentText())
-                movingAverageRatio = float(self.ui.avgRatio.currentText())
-                samplesPerRead = int(self.ui.perRead.currentText())
-                samplesPerIteration = int(self.ui.perIteration.currentText())
-                maxHoldBool = self.ui.chkMax.isChecked()
-                movingAverageBool = self.ui.chkAvg.isChecked()
-                logScaleBool = self.ui.chklog.isChecked()
-                initializeHackRF(sdr, samp_rate, rx_freq, bandwidthFilter, gainRX)
+                self.rx_freq = float(self.ui.rxFreq.text()) * 1e6
+                self.samp_rate = float(self.ui.sampleRate.text()) * 1e6
+                self.gainRX = int(self.ui.gain.text())
+                self.bandwidthFilter = float(self.ui.bandwidthFilter.currentText())
+                self.movingAverageRatio = float(self.ui.avgRatio.currentText())
+                self.samplesPerRead = int(self.ui.perRead.currentText())
+                self.samplesPerIteration = int(self.ui.perIteration.currentText())
+                self.maxHoldBool = self.ui.chkMax.isChecked()
+                self.movingAverageBool = self.ui.chkAvg.isChecked()
+                self.logScaleBool = self.ui.chklog.isChecked()
+                initializeHackRF(sdr, self.samp_rate, self.rx_freq, self.bandwidthFilter, self.gainRX)
 
                 if not self.threadSM.is_alive():
                     self.threadSM.start()
@@ -95,3 +96,5 @@ def mainGUI(self):
     def clearPlot():
         clearPlotBool = True
         self.ax.cla()
+
+
