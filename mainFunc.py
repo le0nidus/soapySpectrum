@@ -51,6 +51,17 @@ def initializeHackRF(isdr, fs, f_rx, bw, gain):
     isdr.setGain(SOAPY_SDR_RX, 0, gain)
 
 
+# Get samples from sdr, but in a loop (read small number of samples every time)
+def getSamples(device, stream, samplesPerScan, numOfRequestedSamples):
+    samples = np.zeros(numOfRequestedSamples, dtype=np.complex64)
+    iterations = int(numOfRequestedSamples / samplesPerScan)
+    for j in range(iterations):
+        sr = device.readStream(stream, [samples[((j-1)*samplesPerScan):]], samplesPerScan)
+    # normalize the sample values
+    # sr = device.readStream(stream, [samples], numOfRequestedSamples)
+    samples = normArr(samples)
+    return samples
+
 # The main function. Here all the variables are setting when button clicks
 def mainGUI(self):
     def update_chart(self):

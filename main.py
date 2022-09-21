@@ -22,11 +22,9 @@ class MainWindow(QMainWindow):
         self.center()
         self.show()
         mainFunc.mainGUI(self)
-
         self.canvas = FigureCanvasQTAgg(plt.Figure(figsize=(5, 4),dpi=100))
         self.ui.frmPlot.addWidget(self.canvas)
         self.insert_ax()
-
 
     def closeEvent(self, event):
         dlg = ExitMessageBox()
@@ -36,7 +34,6 @@ class MainWindow(QMainWindow):
         appIcon = QIcon("icon.png")
         dlg.setWindowIcon(appIcon)
         button = dlg.exec()
-
         if button == QMessageBox.Yes:
             self.running = False
             # @@@@@@@@@@@@@@@@@@@@@@ RELEASE SDR CODE @@@@@@@@@@@@@@@@@@@@@@
@@ -69,6 +66,7 @@ class ExitMessageBox(QMessageBox):
         grid_layout.addWidget(qt_msgbox_label, 0, 0, alignment=Qt.AlignCenter)
         grid_layout.addWidget(qt_msgbox_buttonbox, 1, 0, alignment=Qt.AlignCenter)
 
+
 if __name__ == "__main__":
     # code for setting taskbar icon in windows
     myappid = 'liran.soapySpectrum.2'
@@ -77,6 +75,4 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     window = MainWindow()
-
-
     sys.exit(app.exec_())
