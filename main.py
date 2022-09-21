@@ -8,6 +8,7 @@ from pyfftw.interfaces import numpy_fft as fastnumpyfft
 import numpy as np
 from UI.ui_Main import *
 import mainFunc
+import functions
 import os, ctypes
 
 
@@ -41,7 +42,7 @@ class MainWindow(QMainWindow):
         if button == QMessageBox.Yes:
             self.running = False
             # @@@@@@@@@@@@@@@@@@@@@@ RELEASE SDR CODE @@@@@@@@@@@@@@@@@@@@@@
-            mainFunc.quitStream(self.sdr, self.stream)
+            functions.quitStream(self.sdr, self.stream)
             event.accept()
         else:
             event.ignore()
