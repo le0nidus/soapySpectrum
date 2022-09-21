@@ -62,6 +62,14 @@ def getSamples(device, stream, samplesPerScan, numOfRequestedSamples):
     samples = normArr(samples)
     return samples
 
+
+# Normalize values in given array to be in range [-1,1]
+def normArr(arr):
+    if np.max(np.abs(arr)) != 0:
+        arr = arr / np.max(np.abs(arr))
+    return arr
+
+
 # The main function. Here all the variables are setting when button clicks
 def mainGUI(self):
     def update_chart(self):
@@ -74,7 +82,33 @@ def mainGUI(self):
 
     # This is the Loop which running in Thread
     def loop(self):
+        dft = np.zeros(self.samplesPerIteration)
+        dftOld = np.zeros(self.samplesPerIteration)
+        dftMaxHold = np.zeros(self.samplesPerIteration)
+        dftMovingAverage = np.zeros(self.samplesPerIteration)
+        signal = np.zeros(self.samplesPerIteration)
         while self.running:
+            # save old dft samples for later use
+            dftOld = dft
+
+            # get the samples into the buffer and normalize
+            samples = getSamples(self.sdr, self.stream, self.samplesPerRead, self.samplesPerIteration)
+
+            # Perform dft on the received samples and normalize
+            dft = fastnumpyfft.fftshift(fastnumpyfft.fft(samples, self.samplesPerIteration))
+            dft = normArr(dft)
+
+            dftMovingAverage = dft
+            signal = dft
+
+            # Applying Moving Average Function
+            # if movingAverageBool:
+            #     dftMovingAverage = movingAverageFunc(dftOld, dft, numSamplesPerDFT, movingAverageRatio)
+
+
+            # signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold,
+            #                                              dftMovingAverage)
+
             update_chart(self)
             time.sleep(0.1)
 
