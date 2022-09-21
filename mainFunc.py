@@ -73,12 +73,16 @@ def normArr(arr):
 # The main function. Here all the variables are setting when button clicks
 def mainGUI(self):
     def update_chart(self):
-        # Here is an example
-        num = self.gainRX
-        global i
-        i += 1
-        self.ax.plot([0 + num, 1 + num, 2 + num, 3 + num, 4 + num], [10, 1, 20, i, 40])
+        self.line.set_xdata((self.freqs + self.rx_freq)/1e6)  # update the data on x axis (if user changed frequency)
+        if self.logScaleBool:
+            self.line.set_ydata(np.log10(np.abs(self.signal)))
+        else:
+            self.line.set_ydata(np.abs(self.signal))  # update the data on y axis
+
+        self.ax.relim()
+        self.ax.autoscale()
         self.canvas.draw()
+        # self.ax.pause(0.01)
 
     # This is the Loop which running in Thread
     def loop(self):
@@ -99,7 +103,7 @@ def mainGUI(self):
             dft = normArr(dft)
 
             dftMovingAverage = dft
-            signal = dft
+            self.signal = dft
 
             # Applying Moving Average Function
             # if movingAverageBool:
@@ -140,6 +144,7 @@ def mainGUI(self):
                 self.maxHoldBool = self.ui.chkMax.isChecked()
                 self.movingAverageBool = self.ui.chkAvg.isChecked()
                 self.logScaleBool = self.ui.chklog.isChecked()
+                self.freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(self.samplesPerIteration, d=1 / self.samp_rate))
                 initializeHackRF(self.sdr, self.samp_rate, self.rx_freq, self.bandwidthFilter, self.gainRX)
 
                 if not self.threadSM.is_alive():

@@ -5,7 +5,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib.pyplot as plt
 from matplotlib import rc
 from SoapySDR import SOAPY_SDR_RX
-
+from pyfftw.interfaces import numpy_fft as fastnumpyfft
+import numpy as np
 from UI.ui_Main import *
 import mainFunc
 import os, ctypes
@@ -25,6 +26,8 @@ class MainWindow(QMainWindow):
         self.canvas = FigureCanvasQTAgg(plt.Figure(figsize=(5, 4),dpi=100))
         self.ui.frmPlot.addWidget(self.canvas)
         self.insert_ax()
+        self.freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(64, d=1 / 5e6))
+        (self.line,) = self.ax.plot((self.freqs + 315000000) / 1e6, np.zeros(np.size(self.freqs)))
 
     def closeEvent(self, event):
         dlg = ExitMessageBox()
@@ -55,6 +58,7 @@ class MainWindow(QMainWindow):
         }
         rc('font', **font)
         self.ax = self.canvas.figure.subplots()
+
 
 class ExitMessageBox(QMessageBox):
     def __init__(self, parent=None):
