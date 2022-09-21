@@ -4,7 +4,6 @@ from PySide2.QtCore import QEvent
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib.pyplot as plt
 from matplotlib import rc
-from SoapySDR import SOAPY_SDR_RX
 from pyfftw.interfaces import numpy_fft as fastnumpyfft
 import numpy as np
 from UI.ui_Main import *
@@ -28,6 +27,8 @@ class MainWindow(QMainWindow):
         self.insert_ax()
         self.freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(64, d=1 / 5e6))
         (self.line,) = self.ax.plot((self.freqs + 315000000) / 1e6, np.zeros(np.size(self.freqs)))
+        self.ax.set_xlabel("Frequency (MHz)")
+        self.ax.set_ylabel("Amplitude")
 
     def closeEvent(self, event):
         dlg = ExitMessageBox()

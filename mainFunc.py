@@ -62,6 +62,42 @@ def getSamples(device, stream, samplesPerScan, numOfRequestedSamples):
     samples = normArr(samples)
     return samples
 
+# According to given user choices, show an appropriate signal
+def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT):
+    '''According to user choice, if he chose
+    Moving Average / Max Hold / Both
+    The code will return the appropriate signal'''
+    if mxHldBool and (not mvgAvgBool):
+        # User applied Max Hold without Moving Average
+        # Output would be max from the new samples and old max hold samples
+        mxHldDFT = np.maximum(currDFT, mxHldDFT)
+        sig = mxHldDFT
+    elif (not mxHldBool) and (not mvgAvgBool):
+        # User did not apply any function
+        # Output would be the new dft samples
+        sig = currDFT
+    if mxHldBool and mvgAvgBool:
+        # User applied Max Hold **AND** Moving Average
+        # Output would be max from the new samples after movingAverage function and old max hold samples
+        mxHldDFT = np.maximum(mvgAvgDFT, mxHldDFT)
+        sig = mxHldDFT
+    elif (not mxHldBool) and mvgAvgBool:
+        # User applied Moving Average without Max Hold
+        # Output would be the new samples after movingAverage function
+        sig = mvgAvgDFT
+    return sig, mxHldDFT
+
+
+# Apply moving average function
+def movingAverageFunc(oldDFT, currentDFT, buffer_length, ratio):
+    # start index in the array of the old dft
+    start_index_old_fft = buffer_length - int(buffer_length * ratio)
+    # end index in the array of the new dft
+    end_index_new_fft = int(buffer_length * ratio)
+    # Average of 2 arrays of samples (with same samplesPerIteration length)
+    currentDFT[:end_index_new_fft] = 0.5 * (oldDFT[start_index_old_fft:] + currentDFT[:end_index_new_fft])
+    return currentDFT
+
 
 # Normalize values in given array to be in range [-1,1]
 def normArr(arr):
@@ -84,6 +120,7 @@ def mainGUI(self):
         self.canvas.draw()
         # self.ax.pause(0.01)
 
+
     # This is the Loop which running in Thread
     def loop(self):
         dft = np.zeros(self.samplesPerIteration)
@@ -103,15 +140,16 @@ def mainGUI(self):
             dft = normArr(dft)
 
             dftMovingAverage = dft
-            self.signal = dft
+            sig = dft
 
             # Applying Moving Average Function
-            # if movingAverageBool:
-            #     dftMovingAverage = movingAverageFunc(dftOld, dft, numSamplesPerDFT, movingAverageRatio)
+            if self.movingAverageBool:
+                dftMovingAverage = movingAverageFunc(dftOld, dft, self.samplesPerIteration, self.movingAverageRatio)
 
 
-            # signal, dftMaxHold = assignAppropriateSignal(maxHoldBool, movingAverageBool, dft, dftMaxHold,
-            #                                              dftMovingAverage)
+            sig, dftMaxHold = assignAppropriateSignal(self.maxHoldBool, self.movingAverageBool, dft, dftMaxHold,
+                                                         dftMovingAverage)
+            self.signal = sig
 
             update_chart(self)
             time.sleep(0.1)
