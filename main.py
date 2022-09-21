@@ -4,6 +4,7 @@ from PySide2.QtCore import QEvent
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib.pyplot as plt
 from matplotlib import rc
+from SoapySDR import SOAPY_SDR_RX
 
 from UI.ui_Main import *
 import mainFunc
@@ -39,11 +40,7 @@ class MainWindow(QMainWindow):
         if button == QMessageBox.Yes:
             self.running = False
             # @@@@@@@@@@@@@@@@@@@@@@ RELEASE SDR CODE @@@@@@@@@@@@@@@@@@@@@@
-            # @@@@@@@@@@@@@@@@@@@@@@                  @@@@@@@@@@@@@@@@@@@@@@
-            # @@@@@@@@@@@@@@@@@@@@@@                  @@@@@@@@@@@@@@@@@@@@@@
-            # @@@@@@@@@@@@@@@@@@@@@@                  @@@@@@@@@@@@@@@@@@@@@@
-            # @@@@@@@@@@@@@@@@@@@@@@                  @@@@@@@@@@@@@@@@@@@@@@
-            # @@@@@@@@@@@@@@@@@@@@@@ RELEASE SDR CODE @@@@@@@@@@@@@@@@@@@@@@
+            mainFunc.quitStream(self.sdr, self.stream)
             event.accept()
         else:
             event.ignore()

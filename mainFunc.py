@@ -31,8 +31,17 @@ Update Chart function. You can draw chart changing this function
 
 
 
+# setup a stream (complex floats)
+def setStream(sdrDevice):
+    stream = sdrDevice.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
+    sdrDevice.activateStream(stream)  # start streaming
+    return stream
 
 
+# stop the stream and shutdown
+def quitStream(sdrDevice, stream):
+    sdrDevice.deactivateStream(stream)  # stop streaming
+    sdrDevice.closeStream(stream)
 
 
 def initializeHackRF(isdr, fs, f_rx, bw, gain):
@@ -69,7 +78,7 @@ def mainGUI(self):
     # create device instance
     # args can be user defined or from the enumeration result
     args = dict(driver="hackrf")
-    sdr = SoapySDR.Device(args)
+    self.sdr = SoapySDR.Device(args)
 
 
 
@@ -86,10 +95,12 @@ def mainGUI(self):
                 self.maxHoldBool = self.ui.chkMax.isChecked()
                 self.movingAverageBool = self.ui.chkAvg.isChecked()
                 self.logScaleBool = self.ui.chklog.isChecked()
-                initializeHackRF(sdr, self.samp_rate, self.rx_freq, self.bandwidthFilter, self.gainRX)
+                initializeHackRF(self.sdr, self.samp_rate, self.rx_freq, self.bandwidthFilter, self.gainRX)
 
                 if not self.threadSM.is_alive():
+                    self.stream = setStream(self.sdr)
                     self.threadSM.start()
+
             else:
                 print("rxgain bigger than 90 or smaller than 0")
 
