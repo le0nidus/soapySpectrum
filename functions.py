@@ -41,8 +41,9 @@ def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT)
     if mxHldBool and (not mvgAvgBool):
         # User applied Max Hold without Moving Average
         # Output would be max from the new samples and old max hold samples
-        mxHldDFT = np.maximum(currDFT, mxHldDFT)
-        sig = mxHldDFT
+        if np.size(mxHldDFT) != np.size(currDFT):
+            mxHldDFT = np.zeros(np.size(currDFT))
+        sig = mxHldDFT = np.maximum(currDFT, mxHldDFT)
     elif (not mxHldBool) and (not mvgAvgBool):
         # User did not apply any function
         # Output would be the new dft samples
@@ -50,8 +51,11 @@ def assignAppropriateSignal(mxHldBool, mvgAvgBool, currDFT, mxHldDFT, mvgAvgDFT)
     if mxHldBool and mvgAvgBool:
         # User applied Max Hold **AND** Moving Average
         # Output would be max from the new samples after movingAverage function and old max hold samples
-        mxHldDFT = np.maximum(mvgAvgDFT, mxHldDFT)
-        sig = mxHldDFT
+        if np.size(mvgAvgDFT) != np.size(currDFT):
+            mvgAvgDFT = np.zeros(np.size(currDFT))
+        if np.size(mxHldDFT) != np.size(currDFT):
+            mxHldDFT = np.zeros(np.size(currDFT))
+        sig = mxHldDFT = np.maximum(mvgAvgDFT, mxHldDFT)
     elif (not mxHldBool) and mvgAvgBool:
         # User applied Moving Average without Max Hold
         # Output would be the new samples after movingAverage function

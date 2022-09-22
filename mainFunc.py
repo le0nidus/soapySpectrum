@@ -28,7 +28,6 @@ def mainGUI(self):
             self.line.set_ydata(np.log10(np.abs(self.signal)))
         else:
             self.line.set_ydata(np.abs(self.signal))  # update the data on y axis
-
         self.ax.relim()
         self.ax.autoscale()
         self.canvas.draw()
@@ -59,8 +58,8 @@ def mainGUI(self):
             if self.movingAverageBool:
                 self.dftMovingAverage = functions.movingAverageFunc(self.dftOld, self.dft, self.samplesPerIteration, self.movingAverageRatio)
 
-            sig, self.dftMaxHold = functions.assignAppropriateSignal(self.maxHoldBool, self.movingAverageBool, self.dft, self.dftMaxHold,
-                                                         self.dftMovingAverage)
+            sig, self.dftMaxHold = functions.assignAppropriateSignal(self.maxHoldBool, self.movingAverageBool, self.dft,
+                                                                     self.dftMaxHold,self.dftMovingAverage)
             self.signal = sig
 
             update_chart(self)
@@ -106,6 +105,7 @@ def mainGUI(self):
                                                                             d = 1/self.samp_rate))
                     functions.initializeHackRF(self.sdr, self.samp_rate, self.rx_freq, self.bandwidthFilter,
                                                self.gainRX)
+                    clearPlot()
 
                     if not self.threadSM.is_alive():
                         self.ui.btnClear.setEnabled(True)
