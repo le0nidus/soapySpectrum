@@ -52,15 +52,15 @@ def mainGUI(self):
             self.dft = functions.normArr(self.dft)
 
             self.dftMovingAverage = self.dft
-            sig = self.dft
 
             # Applying Moving Average Function
             if self.movingAverageBool:
-                self.dftMovingAverage = functions.movingAverageFunc(self.dftOld, self.dft, self.samplesPerIteration, self.movingAverageRatio)
+                self.dftMovingAverage =\
+                    functions.movingAverageFunc(self.dftOld, self.dft,self.samplesPerIteration, self.movingAverageRatio)
 
-            sig, self.dftMaxHold = functions.assignAppropriateSignal(self.maxHoldBool, self.movingAverageBool, self.dft,
-                                                                     self.dftMaxHold,self.dftMovingAverage)
-            self.signal = sig
+            self.signal, self.dftMaxHold =\
+                functions.assignAppropriateSignal(self.maxHoldBool, self.movingAverageBool, self.dft,
+                                                  self.dftMaxHold, self.dftMovingAverage)
 
             update_chart(self)
             time.sleep(0.1)
@@ -77,16 +77,17 @@ def mainGUI(self):
     # args can be user defined or from the enumeration result
     args = dict(driver="hackrf")
     self.sdr = SoapySDR.Device(args)
-    self.dft = np.zeros(4096)
-    self.dftOld = np.zeros(4096)
-    self.dftMaxHold = np.zeros(4096)
-    self.dftMovingAverage = np.zeros(4096)
+    self.dft = self.dftMaxHold = self.dftMovingAverage = np.zeros(4096)
     self.ui.btnClear.setEnabled(False)
     self.ui.chklog.setEnabled(False)
     self.ui.chkMax.setEnabled(False)
     self.ui.chkAvg.setEnabled(False)
     self.ui.avgRatio.setEnabled(False)
+    self.ui.label_14.setEnabled(False)
     self.started = False
+    self.ui.perRead.setCurrentIndex(2)
+    self.ui.perIteration.setCurrentIndex(1)
+    self.ui.avgRatio.setCurrentIndex(1)
 
     def updateSettings():
         if self.ui.gain.text() != "":
@@ -113,6 +114,7 @@ def mainGUI(self):
                         self.ui.chkMax.setEnabled(True)
                         self.ui.chkAvg.setEnabled(True)
                         self.ui.avgRatio.setEnabled(True)
+                        self.ui.label_14.setEnabled(True)
                         self.stream = functions.setStream(self.sdr)
                         self.threadSM.start()
                         self.started = True
