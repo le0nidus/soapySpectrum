@@ -2,16 +2,13 @@
 import SoapySDR
 from SoapySDR import Device, SOAPY_SDR_RX, SOAPY_SDR_CF32
 # Using pyfftw instead of numpy to calculate fft faster
-from pyfftw import interfaces
 from pyfftw.interfaces import numpy_fft as fastnumpyfft
 # use numpy for buffers
 import numpy as np
 import functions
-import sys
-# use time for creating delays (remove re-prints)
-import time
-# use the defaults from variable file
-import configfile
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+
 
 
 from threading import Thread
@@ -37,6 +34,16 @@ def mainGUI(self):
     def clearPlot():
         if not np.argmax(np.abs(self.dft)) == 0:
             self.dftMaxHold, self.dftMovingAverage = functions.clearPlotFunc(self.dft)
+
+    def errorMsg(errorString):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle("Error")
+        msg.setText(errorString)
+        msg.setStandardButtons(QMessageBox.Ok)
+        appIcon = QIcon("icon.png")
+        msg.setWindowIcon(appIcon)
+        msg.exec_()
 
     # This is the Loop which running in Thread
     def loop(self):
@@ -90,35 +97,44 @@ def mainGUI(self):
     self.ui.avgRatio.setCurrentIndex(1)
 
     def updateSettings():
-        if self.ui.gain.text() != "":
+        basicErrStr = "cannot be blank / with illegal characters (letters and signs)"
+        if self.ui.gain.text() != "" and self.ui.gain.text().isnumeric():
             if 0 <= int(self.ui.gain.text()) <= 90:
-                    self.rx_freq = float(self.ui.rxFreq.text()) * 1e6
-                    self.samp_rate = float(self.ui.sampleRate.text()) * 1e6
-                    self.gainRX = int(self.ui.gain.text())
-                    self.bandwidthFilter = float(self.ui.bandwidthFilter.currentText())
-                    self.movingAverageRatio = float(self.ui.avgRatio.currentText())
-                    self.samplesPerRead = int(self.ui.perRead.currentText())
-                    self.samplesPerIteration = int(self.ui.perIteration.currentText())
-                    self.maxHoldBool = self.ui.chkMax.isChecked()
-                    self.movingAverageBool = self.ui.chkAvg.isChecked()
-                    self.logScaleBool = self.ui.chklog.isChecked()
-                    self.freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(self.samplesPerIteration,
-                                                                            d = 1/self.samp_rate))
-                    functions.initializeHackRF(self.sdr, self.samp_rate, self.rx_freq, self.bandwidthFilter,
-                                               self.gainRX)
-                    clearPlot()
+                if self.ui.rxFreq.text() != "" and self.ui.rxFreq.text().replace('.','',1).isdigit():
+                    if 1 <= float(self.ui.rxFreq.text()) <= 6000:
+                        if self.ui.sampleRate.text() != "" and self.ui.sampleRate.text().isnumeric():
+                            if 2 <= int(self.ui.sampleRate.text()) <= 20:
+                                self.rx_freq = float(self.ui.rxFreq.text()) * 1e6
+                                self.samp_rate = float(self.ui.sampleRate.text()) * 1e6
+                                self.gainRX = int(self.ui.gain.text())
+                                self.bandwidthFilter = float(self.ui.bandwidthFilter.currentText())
+                                self.movingAverageRatio = float(self.ui.avgRatio.currentText())
+                                self.samplesPerRead = int(self.ui.perRead.currentText())
+                                self.samplesPerIteration = int(self.ui.perIteration.currentText())
+                                self.maxHoldBool = self.ui.chkMax.isChecked()
+                                self.movingAverageBool = self.ui.chkAvg.isChecked()
+                                self.logScaleBool = self.ui.chklog.isChecked()
+                                self.freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(self.samplesPerIteration,
+                                                                                        d=1/self.samp_rate))
+                                functions.initializeHackRF(self.sdr, self.samp_rate, self.rx_freq, self.bandwidthFilter,
+                                                           self.gainRX)
+                                clearPlot()
 
-                    if not self.threadSM.is_alive():
-                        self.ui.btnClear.setEnabled(True)
-                        self.ui.chklog.setEnabled(True)
-                        self.ui.chkMax.setEnabled(True)
-                        self.ui.chkAvg.setEnabled(True)
-                        self.ui.avgRatio.setEnabled(True)
-                        self.ui.label_14.setEnabled(True)
-                        self.stream = functions.setStream(self.sdr)
-                        self.threadSM.start()
-                        self.started = True
+                                if not self.threadSM.is_alive():
+                                    self.ui.btnClear.setEnabled(True)
+                                    self.ui.chklog.setEnabled(True)
+                                    self.ui.chkMax.setEnabled(True)
+                                    self.ui.chkAvg.setEnabled(True)
+                                    self.ui.avgRatio.setEnabled(True)
+                                    self.ui.label_14.setEnabled(True)
+                                    self.stream = functions.setStream(self.sdr)
+                                    self.threadSM.start()
+                                    self.started = True
+                            else: errorMsg("Sample rate must be between 2MS/sec and 20MS/sec")
+                        else: errorMsg("Sample rate " + basicErrStr)
+                    else: errorMsg("RX frequency must be between 2MS/sec and 20MS/sec")
+                else: errorMsg("RX frequency " + basicErrStr)
+            else: errorMsg("Gain must be bigger than 0 or smaller than 90")
+        else: errorMsg("Gain " + basicErrStr)
 
-            else:
-                print("rxgain bigger than 90 or smaller than 0")
 
