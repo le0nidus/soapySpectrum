@@ -17,6 +17,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon("UI/icon.png"))
         self.setMinimumSize(800, 550)
         self.running = True
+        self.loopStarted = False
         self.ui = Ui_SoapySpectrum()
         self.ui.setupUi(self)
         self.center()
@@ -39,9 +40,10 @@ class MainWindow(QMainWindow):
         dlg.setWindowIcon(appIcon)
         button = dlg.exec()
         if button == QMessageBox.Yes:
-            self.running = False
-            # @@@@@@@@@@@@@@@@@@@@@@ RELEASE SDR CODE @@@@@@@@@@@@@@@@@@@@@@
-            functions.quitStream(self.sdr, self.stream)
+            if self.loopStarted:
+                self.running = False
+                # @@@@@@@@@@@@@@@@@@@@@@ RELEASE SDR CODE @@@@@@@@@@@@@@@@@@@@@@
+                functions.quitStream(self.sdr, self.stream)
             event.accept()
         else:
             event.ignore()

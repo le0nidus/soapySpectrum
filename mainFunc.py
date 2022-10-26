@@ -43,6 +43,7 @@ def mainGUI(self):
     # This is the Loop which running in Thread
     def loop(self):
         while self.running:
+            self.loopStarted = True
             # save old dft samples for later use
             self.dftOld = self.dft
 
