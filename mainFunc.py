@@ -127,7 +127,7 @@ def mainGUI(self):
                                     self.started = True
                             else: errorMsg("Sample rate must be between 2MS/sec and 20MS/sec")
                         else: errorMsg("Sample rate " + basicErrStr)
-                    else: errorMsg("RX frequency must be between 2MS/sec and 20MS/sec")
+                    else: errorMsg("RX frequency must be between 1MHz and 6GHz")
                 else: errorMsg("RX frequency " + basicErrStr)
             else: errorMsg("Gain must be bigger than 0 or smaller than 90")
         else: errorMsg("Gain " + basicErrStr)
