@@ -261,12 +261,6 @@ class Ui_SoapySpectrum(object):
         self.formLayout_2.setWidget(1, QFormLayout.LabelRole, self.label_16)
 
         self.perRead = QComboBox(self.frame_4)
-        self.perRead.addItem("")
-        self.perRead.addItem("")
-        self.perRead.addItem("")
-        self.perRead.addItem("")
-        self.perRead.addItem("")
-        self.perRead.addItem("")
         self.perRead.setObjectName(u"perRead")
         sizePolicy2.setHeightForWidth(self.perRead.sizePolicy().hasHeightForWidth())
         self.perRead.setSizePolicy(sizePolicy2)
@@ -367,12 +361,6 @@ class Ui_SoapySpectrum(object):
         self.avgRatio.setItemText(14, QCoreApplication.translate("SoapySpectrum", u"0.9375", None))
 
         self.label_16.setText(QCoreApplication.translate("SoapySpectrum", u"Samples per read :", None))
-        self.perRead.setItemText(0, QCoreApplication.translate("SoapySpectrum", u"32", None))
-        self.perRead.setItemText(1, QCoreApplication.translate("SoapySpectrum", u"64", None))
-        self.perRead.setItemText(2, QCoreApplication.translate("SoapySpectrum", u"128", None))
-        self.perRead.setItemText(3, QCoreApplication.translate("SoapySpectrum", u"256", None))
-        self.perRead.setItemText(4, QCoreApplication.translate("SoapySpectrum", u"512", None))
-        self.perRead.setItemText(5, QCoreApplication.translate("SoapySpectrum", u"1024", None))
 
         self.label_15.setText(QCoreApplication.translate("SoapySpectrum", u"Samples per iteration :", None))
         self.perIteration.setItemText(0, QCoreApplication.translate("SoapySpectrum", u"2048", None))

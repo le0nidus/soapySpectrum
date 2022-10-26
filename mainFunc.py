@@ -30,6 +30,26 @@ def mainGUI(self):
         if not np.argmax(np.abs(self.dft)) == 0:
             self.dftMaxHold, self.dftMovingAverage = functions.clearPlotFunc(self.dft)
 
+    def setupComboBox():
+        self.ui.perRead.addItem("32", ["64", "128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("64", ["128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("128", ["256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("256", ["512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("512", ["1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("2048", ["2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("4096", ["8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("8192", ["16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("16384", ["32768", "65536", "131072"])
+        self.ui.perRead.addItem("32768", ["65536", "131072"])
+        self.ui.perRead.addItem("65536", ["131072"])
+
+    def updatePerIterationComboBox(index):
+        self.ui.perIteration.clear()
+        iterations = self.ui.perRead.itemData(index)
+        if iterations:
+            self.ui.perIteration.addItems(iterations)
+
+
     def errorMsg(errorString):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
@@ -70,6 +90,9 @@ def mainGUI(self):
 
     self.ui.btnStart.clicked.connect(lambda: updateSettings())
     self.ui.btnClear.clicked.connect(lambda: clearPlot())
+    self.ui.perRead.currentIndexChanged.connect(lambda: updatePerIterationComboBox(self.ui.perRead.currentIndex()))
+    updatePerIterationComboBox(self.ui.perRead.currentIndex())
+
     self.threadSM = Thread(target=loop, args=(self,))
     # show soapySDR devices available
     results = SoapySDR.Device.enumerate()
@@ -81,6 +104,7 @@ def mainGUI(self):
     args = dict(driver="hackrf")
     self.sdr = SoapySDR.Device(args)
     self.dft = self.dftMaxHold = self.dftMovingAverage = np.zeros(4096)
+    setupComboBox()
     self.ui.btnClear.setEnabled(False)
     self.ui.chklog.setEnabled(False)
     self.ui.chkMax.setEnabled(False)
@@ -89,7 +113,7 @@ def mainGUI(self):
     self.ui.label_14.setEnabled(False)
     self.started = False
     self.ui.perRead.setCurrentIndex(2)
-    self.ui.perIteration.setCurrentIndex(1)
+    self.ui.perIteration.setCurrentIndex(2)
     self.ui.avgRatio.setCurrentIndex(1)
 
     def updateSettings():
