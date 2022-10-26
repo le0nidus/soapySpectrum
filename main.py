@@ -1,6 +1,5 @@
 import sys
 from PySide2 import QtCore
-from PySide2.QtCore import QEvent
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib.pyplot as plt
 from matplotlib import rc
@@ -23,7 +22,7 @@ class MainWindow(QMainWindow):
         self.center()
         self.show()
         mainFunc.mainGUI(self)
-        self.canvas = FigureCanvasQTAgg(plt.Figure(figsize=(5, 4),dpi=100))
+        self.canvas = FigureCanvasQTAgg(plt.Figure(figsize=(5, 4), dpi=100))
         self.ui.frmPlot.addWidget(self.canvas)
         self.insert_ax()
         self.freqs = fastnumpyfft.fftshift(fastnumpyfft.fftfreq(64, d=1 / 5e6))
@@ -52,7 +51,7 @@ class MainWindow(QMainWindow):
         cp = QGuiApplication.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
-        
+
     def insert_ax(self):
         font = {
             'weight': 'normal',

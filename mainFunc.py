@@ -8,13 +8,8 @@ import numpy as np
 import functions
 from PySide2.QtWidgets import *
 from PySide2.QtGui import *
-
-
-
 from threading import Thread
 import time
-
-
 
 
 # The main function. Here all the variables are setting when button clicks
@@ -136,5 +131,4 @@ def mainGUI(self):
                 else: errorMsg("RX frequency " + basicErrStr)
             else: errorMsg("Gain must be bigger than 0 or smaller than 90")
         else: errorMsg("Gain " + basicErrStr)
-
 
