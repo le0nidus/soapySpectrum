@@ -30,6 +30,19 @@ def mainGUI(self):
         if not np.argmax(np.abs(self.dft)) == 0:
             self.dftMaxHold, self.dftMovingAverage = functions.clearPlotFunc(self.dft)
 
+    def setupComboBox():
+        self.ui.perRead.addItem("32", ["64", "128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("64", ["128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("128", ["256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("256", ["512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("512", ["1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("2048", ["2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("4096", ["8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("8192", ["16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("16384", ["32768", "65536", "131072"])
+        self.ui.perRead.addItem("32768", ["65536", "131072"])
+        self.ui.perRead.addItem("65536", ["131072"])
+
     def errorMsg(errorString):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
@@ -81,6 +94,7 @@ def mainGUI(self):
     args = dict(driver="hackrf")
     self.sdr = SoapySDR.Device(args)
     self.dft = self.dftMaxHold = self.dftMovingAverage = np.zeros(4096)
+    setupComboBox()
     self.ui.btnClear.setEnabled(False)
     self.ui.chklog.setEnabled(False)
     self.ui.chkMax.setEnabled(False)
