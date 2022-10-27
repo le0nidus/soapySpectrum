@@ -49,6 +49,10 @@ def mainGUI(self):
         iterations = self.ui.perRead.itemData(index)
         if iterations:
             self.ui.perIteration.addItems(iterations)
+        if np.size(iterations) >= 2:
+            self.ui.perIteration.setCurrentIndex(1)
+        else:
+            self.ui.perIteration.setCurrentIndex(0)
 
 
     def errorMsg(errorString):
