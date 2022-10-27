@@ -25,11 +25,15 @@ def initializeHackRF(isdr, fs, f_rx, bw, gain):
 # Get samples from sdr, but in a loop (read small number of samples every time)
 def getSamples(device, stream, samplesPerScan, numOfRequestedSamples):
     samples = np.zeros(numOfRequestedSamples, dtype=np.complex64)
-    iterations = int(numOfRequestedSamples / samplesPerScan)
-    for j in range(iterations):
-        sr = device.readStream(stream, [samples[((j-1)*samplesPerScan):]], samplesPerScan)
-    # normalize the sample values
-    # sr = device.readStream(stream, [samples], numOfRequestedSamples)
+    if numOfRequestedSamples == samplesPerScan:
+        # normalize the sample values
+        sr = device.readStream(stream, [samples], numOfRequestedSamples)
+    else:
+        iterations = int(numOfRequestedSamples / samplesPerScan)
+        for j in range(iterations):
+            sr = device.readStream(stream, [samples[((j-1)*samplesPerScan):]], samplesPerScan)
+        # normalize the sample values
+        # sr = device.readStream(stream, [samples], numOfRequestedSamples)
     samples = normArr(samples)
     return samples
 

@@ -31,23 +31,28 @@ def mainGUI(self):
             self.dftMaxHold, self.dftMovingAverage = functions.clearPlotFunc(self.dft)
 
     def setupComboBox():
-        self.ui.perRead.addItem("32", ["64", "128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
-        self.ui.perRead.addItem("64", ["128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
-        self.ui.perRead.addItem("128", ["256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
-        self.ui.perRead.addItem("256", ["512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
-        self.ui.perRead.addItem("512", ["1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("32", ["32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("64", ["64", "128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("128", ["128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("256", ["256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("512", ["512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"])
         self.ui.perRead.addItem("2048", ["2048", "4096", "8192", "16384", "32768", "65536", "131072"])
-        self.ui.perRead.addItem("4096", ["8192", "16384", "32768", "65536", "131072"])
-        self.ui.perRead.addItem("8192", ["16384", "32768", "65536", "131072"])
-        self.ui.perRead.addItem("16384", ["32768", "65536", "131072"])
-        self.ui.perRead.addItem("32768", ["65536", "131072"])
-        self.ui.perRead.addItem("65536", ["131072"])
+        self.ui.perRead.addItem("4096", ["4096", "8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("8192", ["8192", "16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("16384", ["16384", "32768", "65536", "131072"])
+        self.ui.perRead.addItem("32768", ["32768", "65536", "131072"])
+        self.ui.perRead.addItem("65536", ["65536", "131072"])
+        self.ui.perRead.addItem("131072", ["131072"])
 
     def updatePerIterationComboBox(index):
         self.ui.perIteration.clear()
         iterations = self.ui.perRead.itemData(index)
         if iterations:
             self.ui.perIteration.addItems(iterations)
+        if np.size(iterations) >= 2:
+            self.ui.perIteration.setCurrentIndex(1)
+        else:
+            self.ui.perIteration.setCurrentIndex(0)
 
 
     def errorMsg(errorString):
