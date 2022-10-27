@@ -8,11 +8,11 @@ Implemented:
 4. Enable/Disable moving average
 5. Changing moving average ratio
 6. Changing plot to dB scale
-7. 
+7. PyQT GUI
 
 TODO:
-1. Menu with GUI
-2. Implementing the plot inside the GUI
-3. Check which plotting way is better (1 or 2)
-4. Removing center DC (caused by leak from LO)
-5. (with GUI) Changing gain, samples per iteration, samples per read, bandwidth filter
+1. Check which plotting way is better (1 or 2)
+2. Removing center DC (caused by leak from LO)
+3. Expanding the plot dynamically when user clicks "Update settings/start" for the first time
+4. Recording spectrum and saving (adding a button)
+
